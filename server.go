@@ -4,10 +4,11 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"github.com/gorilla/mux"
 )
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/view/"):]
+	title := mux.Vars(r)["title"]
 	p, _ := loadPage(title)
 	t, err := template.ParseFiles("/tmp/view.html")
 	if err != nil {
@@ -36,6 +37,8 @@ func loadPage(title string) (*Page, error) {
 }
 
 func main() {
-	http.HandleFunc("/view/", viewHandler)
+	r := mux.NewRouter()
+	r.HandleFunc("/view/{title}", viewHandler)
+	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
 }
