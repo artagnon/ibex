@@ -9,8 +9,13 @@ import (
 	"crypto/tls"
 	"io/ioutil"
 	"strings"
+	"encoding/json"
 )
 
+type Message struct {
+	Subject string
+	Date time.Time
+}
 
 func main () {
 	var (
@@ -83,7 +88,10 @@ func main () {
 		for _, rsp = range cmd.Data {
 			header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
 			if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
-				fmt.Println("|--", msg.Header.Get("Subject"))
+				date, _ := msg.Header.Date()
+				messageStruct := Message{msg.Header.Get("Subject"), date}
+				bytes, _ := json.Marshal(messageStruct)
+				fmt.Println("|--", string(bytes))
 			}
 		}
 		cmd.Data = nil
