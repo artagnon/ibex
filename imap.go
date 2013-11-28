@@ -83,6 +83,7 @@ func main () {
 
 	// Process responses while the command is running
 	fmt.Println("\nMost recent messages:")
+	var recentMessages []*Message
 	for cmd.InProgress() {
 		// Wait for the next response (no timeout)
 		c.Recv(-1)
@@ -97,8 +98,7 @@ func main () {
 				ccList, _ := msg.Header.AddressList("Cc")
 				messageStruct := Message{msg.Header.Get("Subject"), date,
 					fromList[0], toList, ccList}
-				bytes, _ := json.Marshal(messageStruct)
-				fmt.Println("|--", string(bytes))
+				recentMessages = append(recentMessages, &messageStruct)
 			}
 		}
 		cmd.Data = nil
@@ -109,6 +109,8 @@ func main () {
 		}
 		c.Data = nil
 	}
+	bytes, _ := json.Marshal(recentMessages)
+	fmt.Println(string(bytes))
 
 	// Check command completion status
 	if rsp, err := cmd.Result(imap.OK); err != nil {
