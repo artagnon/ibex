@@ -9,7 +9,6 @@ import (
 	"crypto/tls"
 	"io/ioutil"
 	"strings"
-	"strconv"
 	"encoding/json"
 )
 
@@ -19,23 +18,22 @@ type Message struct {
 	From *mail.Address
 	ToList []*mail.Address
 	CcList []*mail.Address
-	ThreadID uint64
 }
 
 func listMessages (c *imap.Client, cmd *imap.Command) []byte {
-	var messageList []*Message
+	messageList := make(map[string][]*Message)
 
 	for _, rsp := range cmd.Data {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
-		threadid, _ := strconv.ParseUint(rsp.MessageInfo().Attrs["X-GM-THRID"].(string), 10, 0)
+		threadid := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
 		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
 			date, _ := msg.Header.Date()
 			fromList, _ := msg.Header.AddressList("From")
 			toList, _ := msg.Header.AddressList("To")
 			ccList, _ := msg.Header.AddressList("Cc")
 			messageStruct := Message{msg.Header.Get("Subject"), date,
-				fromList[0], toList, ccList, threadid}
-			messageList = append(messageList, &messageStruct)
+				fromList[0], toList, ccList}
+			messageList[threadid] = append(messageList[threadid], &messageStruct)
 		}
 	}
 	cmd.Data = nil
