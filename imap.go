@@ -73,6 +73,21 @@ func initClient () *imap.Client {
 	return c
 }
 
+func gmailSearch (c *imap.Client, searchString string) []byte {
+	set, _ := imap.NewSeqSet("")
+	cmd, _ := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
+	results := cmd.Data[0].SearchResults()
+	if set.AddNum(results[len(results) - 10:]...); set.Empty() {
+		fmt.Println("Error: No time to complete search")
+		return nil
+	}
+	cmd.Data = nil
+
+	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	bytestring := listMessages(c, cmd)
+	return bytestring
+}
+
 func main () {
 	c := initClient()
 
@@ -105,25 +120,13 @@ func main () {
 	}
 	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
 
-	// Process responses while the command is running
 	fmt.Println("\nMost recent messages:")
 	bytestring := listMessages(c, cmd)
 	fmt.Println(string(bytestring))
 
 	c.Select("[Gmail]/All Mail", true)
 	fmt.Println("\nMessages with attachments:")
-	set, _ = imap.NewSeqSet("")
-
-	cmd, _ = imap.Wait(c.Search("X-GM-RAW", c.Quote("has:attachment")))
-	results := cmd.Data[0].SearchResults()
-	if set.AddNum(results[len(results) - 10:]...); set.Empty() {
-		fmt.Println("Error: No time to complete search")
-		return
-	}
-	cmd.Data = nil
-
-	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
-	bytestring = listMessages(c, cmd)
+	bytestring = gmailSearch(c, "has:attachment")
 	fmt.Println(string(bytestring))
 
 	// Check command completion status
