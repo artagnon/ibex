@@ -22,28 +22,26 @@ type Message struct {
 
 func listMessages (c *imap.Client, cmd *imap.Command) []byte {
 	var messageList []*Message
-	for cmd.InProgress() {
-		c.Recv(-1)
 
-		for _, rsp := range cmd.Data {
-			header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
-			if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
-				date, _ := msg.Header.Date()
-				fromList, _ := msg.Header.AddressList("From")
-				toList, _ := msg.Header.AddressList("To")
-				ccList, _ := msg.Header.AddressList("Cc")
-				messageStruct := Message{msg.Header.Get("Subject"), date,
-					fromList[0], toList, ccList}
-				messageList = append(messageList, &messageStruct)
-			}
+	for _, rsp := range cmd.Data {
+		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
+		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
+			date, _ := msg.Header.Date()
+			fromList, _ := msg.Header.AddressList("From")
+			toList, _ := msg.Header.AddressList("To")
+			ccList, _ := msg.Header.AddressList("Cc")
+			messageStruct := Message{msg.Header.Get("Subject"), date,
+				fromList[0], toList, ccList}
+			messageList = append(messageList, &messageStruct)
 		}
-		cmd.Data = nil
-
-		for _, rsp := range c.Data {
-			fmt.Println("Server data:", rsp)
-		}
-		c.Data = nil
 	}
+	cmd.Data = nil
+
+	for _, rsp := range c.Data {
+		fmt.Println("Server data:", rsp)
+	}
+	c.Data = nil
+
 	bytestring, _ := json.Marshal(messageList)
 	return bytestring
 }
@@ -107,35 +105,23 @@ func main () {
 	} else {
 		set.Add("1:*")
 	}
-	cmd, _ = c.Fetch(set, "RFC822.HEADER")
+	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER"))
 
 	// Process responses while the command is running
 	fmt.Println("\nMost recent messages:")
 	bytestring := listMessages(c, cmd)
 	fmt.Println(string(bytestring))
 
-	if cmd, err = c.Search("X-GM-RAW", c.Quote("has:attachment")); err != nil {
-		fmt.Println("Error: ", err.Error())
-	}
-
 	fmt.Println("\nMessages with attachments:")
 	set, _ = imap.NewSeqSet("")
-	for cmd.InProgress() {
-		c.Recv(-1)
 
-		for _, rsp := range cmd.Data {
-			set.AddNum(rsp.SearchResults()...)
-		}
-		cmd.Data = nil
-
-		// Process unilateral server data
-		for _, rsp = range c.Data {
-			fmt.Println("Server data:", rsp)
-		}
-		c.Data = nil
+	cmd, _ = imap.Wait(c.Search("X-GM-RAW", c.Quote("has:attachment")))
+	for _, rsp := range cmd.Data {
+		set.AddNum(rsp.SearchResults()...)
 	}
+	cmd.Data = nil
 
-	cmd, _ = c.Fetch(set, "RFC822.HEADER")
+	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER"))
 	bytestring = listMessages(c, cmd)
 	fmt.Println(string(bytestring))
 
