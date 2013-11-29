@@ -80,7 +80,7 @@ func main () {
 	}
 
 	// List all top-level mailboxes, wait for the command to finish
-	cmd, _ = imap.Wait(c.List("", "%"))
+	cmd, _ = imap.Wait(c.List("", "*"))
 
 	// Print mailbox information
 	fmt.Println("\nTop-level mailboxes:")
