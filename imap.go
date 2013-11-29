@@ -109,8 +109,49 @@ func main () {
 		}
 		c.Data = nil
 	}
-	bytes, _ := json.Marshal(recentMessages)
-	fmt.Println(string(bytes))
+	bytestring, _ := json.Marshal(recentMessages)
+	fmt.Println(string(bytestring))
+
+	if cmd, err = c.Search("X-GM-RAW", c.Quote("has:attachment")); err != nil {
+		fmt.Println("Error: ", err.Error())
+	}
+
+	fmt.Println("\nMessages with attachments:")
+	set, _ = imap.NewSeqSet("")
+	for cmd.InProgress() {
+		c.Recv(-1)
+
+		for _, rsp := range cmd.Data {
+			set.AddNum(rsp.SearchResults()...)
+		}
+		cmd.Data = nil
+
+		// Process unilateral server data
+		for _, rsp = range c.Data {
+			fmt.Println("Server data:", rsp)
+		}
+		c.Data = nil
+	}
+
+	cmd, _ = c.Fetch(set, "RFC822.HEADER")
+
+	for cmd.InProgress() {
+		c.Recv(-1)
+
+		for _, rsp = range cmd.Data {
+			header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
+			if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
+				fmt.Println(msg.Header.Get("Subject"))
+			}
+		}
+		cmd.Data = nil
+
+		// Process unilateral server data
+		for _, rsp = range c.Data {
+			fmt.Println("Server data:", rsp)
+		}
+		c.Data = nil
+	}
 
 	// Check command completion status
 	if rsp, err := cmd.Result(imap.OK); err != nil {
