@@ -107,12 +107,15 @@ func main () {
 	bytestring := listMessages(c, cmd)
 	fmt.Println(string(bytestring))
 
+	c.Select("[Gmail]/All Mail", true)
 	fmt.Println("\nMessages with attachments:")
 	set, _ = imap.NewSeqSet("")
 
 	cmd, _ = imap.Wait(c.Search("X-GM-RAW", c.Quote("has:attachment")))
-	for _, rsp := range cmd.Data {
-		set.AddNum(rsp.SearchResults()...)
+	results := cmd.Data[0].SearchResults()
+	if set.AddNum(results[len(results) - 10:]...); set.Empty() {
+		fmt.Println("Error: No time to complete search")
+		return
 	}
 	cmd.Data = nil
 
