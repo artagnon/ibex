@@ -45,11 +45,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) []byte {
 }
 
 func main () {
-	var (
-		cmd *imap.Command
-		rsp *imap.Response
-		config *tls.Config
-	)
+	var config *tls.Config
 
 	// Connect to the server
 	c, err := imap.DialTLS("imap.gmail.com", config)
@@ -78,16 +74,16 @@ func main () {
 	}
 
 	// List all top-level mailboxes, wait for the command to finish
-	cmd, _ = imap.Wait(c.List("", "*"))
+	cmd, _ := imap.Wait(c.List("", "*"))
 
 	// Print mailbox information
 	fmt.Println("\nTop-level mailboxes:")
-	for _, rsp = range cmd.Data {
+	for _, rsp := range cmd.Data {
 		fmt.Println("|--", rsp.MailboxInfo())
 	}
 
 	// Check for new unilateral server data responses
-	for _, rsp = range c.Data {
+	for _, rsp := range c.Data {
 		fmt.Println("Server data:", rsp)
 	}
 	c.Data = nil
