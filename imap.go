@@ -37,11 +37,6 @@ func listMessages (c *imap.Client, cmd *imap.Command) []byte {
 	}
 	cmd.Data = nil
 
-	for _, rsp := range c.Data {
-		fmt.Println("Server data:", rsp)
-	}
-	c.Data = nil
-
 	bytestring, _ := json.Marshal(messageList)
 	return bytestring
 }
