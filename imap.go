@@ -86,6 +86,22 @@ func gmailSearch (c *imap.Client, searchString string) []byte {
 	return bytestring
 }
 
+func listRecent (c *imap.Client, limit uint32) []byte {
+	// Fetch the headers of the 10 most recent messages
+	set, _ := imap.NewSeqSet("")
+	if c.Mailbox.Messages > limit {
+		set.AddRange(c.Mailbox.Messages - limit, c.Mailbox.Messages)
+	} else {
+		set.Add("1:*")
+	}
+
+	fmt.Println(fmt.Sprintf("%d recent messages:", limit))
+	cmd, _ := imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	bytestring := listMessages(c, cmd)
+
+	return bytestring
+}
+
 func main () {
 	c := initClient()
 
@@ -107,19 +123,8 @@ func main () {
 
 	// Open a mailbox (synchronous command - no need for imap.Wait)
 	c.Select("INBOX", true)
-	fmt.Print("\nMailbox status:\n", c.Mailbox)
-
-	// Fetch the headers of the 10 most recent messages
-	set, _ := imap.NewSeqSet("")
-	if c.Mailbox.Messages >= 10 {
-		set.AddRange(c.Mailbox.Messages-9, c.Mailbox.Messages)
-	} else {
-		set.Add("1:*")
-	}
-	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
-
-	fmt.Println("\nMost recent messages:")
-	bytestring := listMessages(c, cmd)
+	fmt.Println("\nMailbox status:\n", c.Mailbox)
+	bytestring := listRecent(c, 10)
 	fmt.Println(string(bytestring))
 
 	c.Select("[Gmail]/All Mail", true)
