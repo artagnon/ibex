@@ -10,7 +10,7 @@ import (
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := mux.Vars(r)["title"]
 	p, _ := loadPage(title)
-	t, err := template.ParseFiles("view.html")
+	t, err := template.ParseFiles("app/view.html")
 	if err != nil {
 		panic("Cannot open view.html" + err.Error())
 	}
