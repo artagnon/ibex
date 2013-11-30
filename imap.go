@@ -146,13 +146,11 @@ func main () {
 	// Open a mailbox (synchronous command - no need for imap.Wait)
 	c.Select("INBOX", true)
 	fmt.Println("\nMailbox status:\n", c.Mailbox)
-	bytestring := listRecent(c, 20)
-	fmt.Println(string(bytestring))
+	fmt.Println(string(listRecent(c, 20)))
 
 	c.Select("[Gmail]/All Mail", true)
 	fmt.Println("\nMessages with attachments:")
-	bytestring = gmailSearch(c, "has:attachment")
-	fmt.Println(string(bytestring))
+	fmt.Println(string(gmailSearch(c, "has:attachment")))
 
 	// Check command completion status
 	if rsp, err := cmd.Result(imap.OK); err != nil {
