@@ -117,13 +117,13 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 		set.Add("1:*")
 	}
 
-	fmt.Println(fmt.Sprintf("%d recent messages:", limit))
 	cmd, _ := imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
 	bytestring := listMessages(c, cmd)
 
 	return bytestring
 }
 
+/*
 func main () {
 	c := initClient()
 
@@ -161,3 +161,4 @@ func main () {
 		}
 	}
 }
+*/

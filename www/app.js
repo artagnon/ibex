@@ -30,7 +30,7 @@ function Mailbox ($scope, $http) {
 	});
 	return _.uniq(sorted_authors.slice(0, 3)).join(", ");
     };
-    $http.get('mails.json').success(function(data) {
+    $http.get('/inbox').success(function(data) {
 	$scope.conversations = data;
     });
 };
