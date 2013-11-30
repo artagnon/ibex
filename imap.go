@@ -97,7 +97,9 @@ func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	set, _ := imap.NewSeqSet("")
 	cmd, _ := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
 	results := cmd.Data[0].SearchResults()
-	if set.AddNum(results[len(results) - limit:]...); set.Empty() {
+	var cut int
+	if (len(results) < limit) { cut = 0; } else { cut = len(results) - limit; }
+	if set.AddNum(results[cut:]...); set.Empty() {
 		fmt.Println("Error: No time to complete search")
 		return nil
 	}
