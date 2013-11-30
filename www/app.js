@@ -30,6 +30,9 @@ function Mailbox ($scope, $http) {
 	});
 	return _.uniq(sorted_authors.slice(0, 3)).join(", ");
     };
+    $scope.format_date = function (unixdate) {
+	return moment(unixdate, "X").fromNow();
+    }
     $http.get('/inbox').success(function(data) {
 	$scope.conversations = data;
     });

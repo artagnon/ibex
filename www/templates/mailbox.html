@@ -13,7 +13,9 @@
 	    <div class="col-md-4">{{format_authors(conversation)}}
 	      <span class="badge pull-right">{{conversation.length}}</span>
 	    </div>
-	    <div class="col-md-8">{{format_subject(conversation[0])}}</div>
+	    <div class="col-md-8">{{format_subject(conversation[0])}}
+	      <span class="date pull-right">{{format_date(unixdate)}}</span>
+	    </div>
 	  </div>
 	</li>
       </ul>
