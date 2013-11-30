@@ -18,8 +18,6 @@ type Message struct {
 	Subject string
 	Date time.Time
 	From *mail.Address
-	ToList []*mail.Address
-	CcList []*mail.Address
 }
 
 type MessageArray []*Message
@@ -45,10 +43,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) []byte {
 		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
 			date, _ := msg.Header.Date()
 			fromList, _ := msg.Header.AddressList("From")
-			toList, _ := msg.Header.AddressList("To")
-			ccList, _ := msg.Header.AddressList("Cc")
-			messageStruct := Message{msg.Header.Get("Subject"), date,
-				fromList[0], toList, ccList}
+			messageStruct := Message{msg.Header.Get("Subject"), date, fromList[0]}
 			messageList[threadid] = append(messageList[threadid], &messageStruct)
 		}
 	}
