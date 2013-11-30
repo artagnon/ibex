@@ -1,14 +1,14 @@
 <ng-include src="'templates/_nav.html'"></ng-include>
-<article class="container" ng-controller="Mailbox">
+<article ng-controller="Mailbox">
   <div class="row">
     <div class="col-md-2">
       <ul class="nav nav-pills nav-stacked">
 	<li ng-repeat="mailbox in mailboxes" class="{{$first ? 'active' : ''}}"><a href="#">{{mailbox}}</a></li>
       </ul>
     </div>
-    <div class="col-md-8">
+    <div class="col-md-10">
       <ul class="list-group">
-	<li class="list-group-item" ng-repeat="(threadid, conversation) in conversations" id="{{threadid}}">
+	<li class="list-group-item" ng-repeat="(unixdate, conversation) in conversations" id="{{threadid}}">
 	  <div class="row">
 	    <div class="col-md-4">{{format_authors(conversation)}}
 	      <span class="badge pull-right">{{conversation.length}}</span>
