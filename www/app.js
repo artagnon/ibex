@@ -45,8 +45,10 @@ ibex.controller('Mailbox', ['$scope', '$http', '$location'
     };
     scope.format_date = function (unixdate) {
 	return moment(unixdate, "X").fromNow();
-    }
-    http.get('/inbox.json').success(function(data) {
+    };
+    var currentMailbox = scope.currentMailbox;
+    currentMailbox = currentMailbox == '/' ? '/Inbox' : currentMailbox;
+    http.get(currentMailbox + '.json').success(function(data) {
 	scope.conversations = data;
     });
 }]);

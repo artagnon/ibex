@@ -33,7 +33,7 @@ func main() {
 	defer c.Logout(30 * time.Minute)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/inbox.json", inboxHandler)
+	r.HandleFunc("/Inbox.json", inboxHandler)
 	r.HandleFunc("/AllMail", allMailHandler)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
 	http.Handle("/", r)
