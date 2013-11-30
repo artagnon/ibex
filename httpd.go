@@ -27,12 +27,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	p := Page{"ibex: Email redone", "quux"}
-	t, err := template.ParseFiles("app/index.html")
-	if err != nil {
-		panic("Cannot open index.html" + err.Error())
-	}
-	t.Execute(w, p)
+	http.ServeFile(w, r, "app/index.html")
 }
 
 func loadPage(title string) (*Page, error) {
