@@ -23,13 +23,18 @@ func inboxHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(listRecent(c, 20)))
 }
 
+func allMailHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "www/index.html")
+}
+
 func main() {
 	c = initClient()
 	c.Select("INBOX", true)
 	defer c.Logout(30 * time.Minute)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/inbox", inboxHandler)
+	r.HandleFunc("/inbox.json", inboxHandler)
+	r.HandleFunc("/AllMail", allMailHandler)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", requestLogger(http.DefaultServeMux))

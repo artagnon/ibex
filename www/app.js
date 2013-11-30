@@ -9,16 +9,29 @@ function format_fname(address) {
     }
 }
 
-function Mailbox ($scope, $http) {
-    $scope.mailboxes = ["Inbox", "All Mail"];
-    $scope.format_subject = function (mail) {
+var ibex = angular.module('ibex', []);
+
+ibex.config(['$locationProvider', function (locationProvider) {
+    locationProvider.html5Mode(true).hashPrefix('!');
+}]);
+
+ibex.run(['$http', '$location', '$rootScope', '$injector', '$compile'
+, function (http, location, rootScope, injector, compile) {
+    rootScope.$on('$locationChangeSuccess', function (event, next, current) {
+	rootScope.currentMailbox = location.path();
+    });
+}]);
+
+ibex.controller('Mailbox', ['$scope', '$http', '$location'
+, function (scope, http, location) {
+    scope.mailboxes = {"/": "Inbox", "/AllMail": "All Mail"};
+    scope.format_subject = function (mail) {
 	return mail["Subject"].replace(/^(Re:|Fwd:)+ /, "");
     };
-    $scope.format_authors = function (conversation) {
+    scope.format_authors = function (conversation) {
 	var authors = _.map(conversation, function (mail) {
 	    return format_fname(mail["From"]);
 	});
-	authors = _.flatten(authors);
 	author_frequency = {};
 	_.each(authors, function (author) {
 	    if (!author_frequency[author])
@@ -30,10 +43,10 @@ function Mailbox ($scope, $http) {
 	});
 	return _.uniq(sorted_authors.slice(0, 3)).join(", ");
     };
-    $scope.format_date = function (unixdate) {
+    scope.format_date = function (unixdate) {
 	return moment(unixdate, "X").fromNow();
     }
-    $http.get('/inbox').success(function(data) {
-	$scope.conversations = data;
+    http.get('/inbox.json').success(function(data) {
+	scope.conversations = data;
     });
-};
+}]);

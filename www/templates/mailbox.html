@@ -3,7 +3,9 @@
   <div class="row">
     <div class="col-md-2">
       <ul class="nav nav-pills nav-stacked">
-	<li ng-repeat="mailbox in mailboxes" class="{{$first ? 'active' : ''}}"><a href="#">{{mailbox}}</a></li>
+	<li ng-repeat="(path, name) in mailboxes" ng-class="path == currentMailbox ? 'active' : ''">
+	  <a href="{{path}}">{{name}}</a>
+	</li>
       </ul>
     </div>
     <div class="col-md-10">
