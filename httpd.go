@@ -7,6 +7,15 @@ import (
 	"encoding/json"
 )
 
+type Page struct {
+	Title string
+	Body string
+}
+
+type Message struct {
+	Subject string
+}
+
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := mux.Vars(r)["title"]
 	p, _ := loadPage(title)
@@ -17,13 +26,13 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	t.Execute(w, p)
 }
 
-type Page struct {
-	Title string
-	Body string
-}
-
-type Message struct {
-	Subject string
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	p := Page{"ibex: Email redone", "quux"}
+	t, err := template.ParseFiles("app/index.html")
+	if err != nil {
+		panic("Cannot open index.html" + err.Error())
+	}
+	t.Execute(w, p)
 }
 
 func loadPage(title string) (*Page, error) {
@@ -33,6 +42,7 @@ func loadPage(title string) (*Page, error) {
 
 func main() {
 	r := mux.NewRouter()
+	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/view/{title}", viewHandler)
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
