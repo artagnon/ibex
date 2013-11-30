@@ -10,10 +10,10 @@
       <ul class="list-group">
 	<li class="list-group-item" ng-repeat="(threadid, conversation) in conversations" id="{{threadid}}">
 	  <div class="row">
-	    <div class="col-md-3">{{format_authors(conversation)}}
+	    <div class="col-md-4">{{format_authors(conversation)}}
 	      <span class="badge pull-right">{{conversation.length}}</span>
 	    </div>
-	    <div class="col-md-9">{{format_subject(conversation[0])}}</div>
+	    <div class="col-md-8">{{format_subject(conversation[0])}}</div>
 	  </div>
 	</li>
       </ul>

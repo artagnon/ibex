@@ -1,3 +1,14 @@
+function format_fname(address) {
+    var name = address["Name"]
+    if (!name) {
+	return address["Address"].split("@")[0];
+    } else if (name.indexOf(", ") !== -1) {
+	return name.split(", ")[1];
+    } else {
+	return name.split(" ") [0];
+    }
+}
+
 function Mailbox ($scope, $http) {
     $scope.mailboxes = ["Inbox", "All Mail"];
     $scope.format_subject = function (mail) {
@@ -5,16 +16,19 @@ function Mailbox ($scope, $http) {
     };
     $scope.format_authors = function (conversation) {
 	var authors = _.map(conversation, function (mail) {
-	    var from = mail["From"]["Name"]
-	    if (!from) {
-		return mail["From"]["Address"].split("@")[0];
-	    } else if (from.indexOf(", ") !== -1) {
-		return from.split(", ")[1];
-	    } else {
-		return from.split(" ") [0];
-	    }
+	    return format_fname(mail["From"]);
 	});
-	return _.uniq(authors).join(", ");
+	authors = _.flatten(authors);
+	author_frequency = {};
+	_.each(authors, function (author) {
+	    if (!author_frequency[author])
+		author_frequency[author] = 0;
+	    author_frequency[author]++;
+	});
+	var sorted_authors = _.sortBy(_.uniq(authors), function (author) {
+	    author_frequency[author];
+	});
+	return _.uniq(sorted_authors.slice(0, 3)).join(", ");
     };
     $http.get('mails.json').success(function(data) {
 	$scope.conversations = data;
