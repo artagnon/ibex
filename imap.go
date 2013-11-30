@@ -20,8 +20,10 @@ type Message struct {
 	CcList []*mail.Address
 }
 
+type MessageList map[string][]*Message
+
 func listMessages (c *imap.Client, cmd *imap.Command) []byte {
-	messageList := make(map[string][]*Message)
+	messageList := make(MessageList)
 
 	for _, rsp := range cmd.Data {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
