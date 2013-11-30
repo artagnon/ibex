@@ -126,7 +126,7 @@ func main () {
 	// Open a mailbox (synchronous command - no need for imap.Wait)
 	c.Select("INBOX", true)
 	fmt.Println("\nMailbox status:\n", c.Mailbox)
-	bytestring := listRecent(c, 10)
+	bytestring := listRecent(c, 20)
 	fmt.Println(string(bytestring))
 
 	c.Select("[Gmail]/All Mail", true)
