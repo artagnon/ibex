@@ -19,15 +19,11 @@ type Message struct {
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := mux.Vars(r)["title"]
 	p, _ := loadPage(title)
-	t, err := template.ParseFiles("app/view.html")
+	t, err := template.ParseFiles("www/templates/view.html")
 	if err != nil {
 		panic("Cannot open view.html" + err.Error())
 	}
 	t.Execute(w, p)
-}
-
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "app/index.html")
 }
 
 func loadPage(title string) (*Page, error) {
@@ -37,8 +33,8 @@ func loadPage(title string) (*Page, error) {
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/view/{title}", viewHandler)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
 }
