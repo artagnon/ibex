@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"strings"
 	"encoding/json"
+	"sort"
+	"strconv"
 )
 
 type Message struct {
@@ -20,10 +22,22 @@ type Message struct {
 	CcList []*mail.Address
 }
 
-type MessageList map[string][]*Message
+type MessageArray []*Message
+type MessageList map[string]MessageArray
+
+func (s MessageArray) Len() int {
+	return len(s)
+}
+func (s MessageArray) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s MessageArray) Less(i, j int) bool {
+	return s[i].Date.Before(s[j].Date)
+}
 
 func listMessages (c *imap.Client, cmd *imap.Command) []byte {
 	messageList := make(MessageList)
+	messageListDate := make(MessageList)
 
 	for _, rsp := range cmd.Data {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
@@ -40,7 +54,13 @@ func listMessages (c *imap.Client, cmd *imap.Command) []byte {
 	}
 	cmd.Data = nil
 
-	bytestring, _ := json.Marshal(messageList)
+	for _, value := range messageList {
+		sort.Sort(MessageArray(value))
+		newKey := value[len(value) - 1].Date
+		messageListDate[strconv.FormatInt(newKey.Unix(), 10)] = value
+	}
+
+	bytestring, _ := json.Marshal(messageListDate)
 	return bytestring
 }
 
