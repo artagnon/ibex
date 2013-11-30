@@ -93,11 +93,11 @@ func initClient () *imap.Client {
 	return c
 }
 
-func gmailSearch (c *imap.Client, searchString string) []byte {
+func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	set, _ := imap.NewSeqSet("")
 	cmd, _ := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
 	results := cmd.Data[0].SearchResults()
-	if set.AddNum(results[len(results) - 10:]...); set.Empty() {
+	if set.AddNum(results[len(results) - limit:]...); set.Empty() {
 		fmt.Println("Error: No time to complete search")
 		return nil
 	}
@@ -150,7 +150,7 @@ func main () {
 
 	c.Select("[Gmail]/All Mail", true)
 	fmt.Println("\nMessages with attachments:")
-	fmt.Println(string(gmailSearch(c, "has:attachment")))
+	fmt.Println(string(gmailSearch(c, "has:attachment", 20)))
 
 	// Check command completion status
 	if rsp, err := cmd.Result(imap.OK); err != nil {
