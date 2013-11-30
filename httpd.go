@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"encoding/json"
+	"log"
 )
 
 type Page struct {
@@ -14,6 +15,13 @@ type Page struct {
 
 type Message struct {
 	Subject string
+}
+
+func requestLogger(handler http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        log.Printf("%s %s %s", r.RemoteAddr, r.Method, r.URL)
+	handler.ServeHTTP(w, r)
+    })
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -36,5 +44,5 @@ func main() {
 	r.HandleFunc("/view/{title}", viewHandler)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
 	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", requestLogger(http.DefaultServeMux))
 }
