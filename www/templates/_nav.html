@@ -1,0 +1,17 @@
+<div class="navbar navbar-default navbar-fixed-top">
+  <section class="container">
+    <a href="/" class="navbar-brand">ibex</a>
+    <ul ng-show="user.name" class="nav navbar-nav navbar-right">
+      <li>
+        <a href="/">
+          <span ng-bind="user.name"></span>
+        </a>
+      </li>
+      <li>
+        <a target="_self" href="logout" title="Logout">
+          <i class="fa fa-lg fa-sign-out"></i>
+        </a>
+      </li>
+    </ul>
+  </section>
+</div>
