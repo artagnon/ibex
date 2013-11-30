@@ -21,7 +21,7 @@ type Message struct {
 }
 
 type MessageArray []*Message
-type MessageList map[string]MessageArray
+type Conversations map[string]MessageArray
 
 func (s MessageArray) Len() int {
 	return len(s)
@@ -33,29 +33,61 @@ func (s MessageArray) Less(i, j int) bool {
 	return s[i].Date.Before(s[j].Date)
 }
 
-func listMessages (c *imap.Client, cmd *imap.Command) []byte {
-	messageList := make(MessageList)
-	messageListDate := make(MessageList)
+func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
+	var list MessageArray
 
 	for _, rsp := range cmd.Data {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
-		threadid := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
 		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
 			date, _ := msg.Header.Date()
 			fromList, _ := msg.Header.AddressList("From")
 			messageStruct := Message{msg.Header.Get("Subject"), date, fromList[0]}
-			messageList[threadid] = append(messageList[threadid], &messageStruct)
+			list = append(list, &messageStruct)
 		}
 	}
 	cmd.Data = nil
 
-	for _, value := range messageList {
-		sort.Sort(MessageArray(value))
-		newKey := value[len(value) - 1].Date
-		messageListDate[strconv.FormatInt(newKey.Unix(), 10)] = value
+	return list
+}
+
+func threadSearch (c *imap.Client, threadID string) []*Message {
+	set, _ := imap.NewSeqSet("")
+	cmd, _ := imap.Wait(c.Search("X-GM-THRID", c.Quote(threadID)))
+	results := cmd.Data[0].SearchResults()
+	if set.AddNum(results...); set.Empty() {
+		fmt.Println("Error: No search results")
+		return nil
+	}
+	cmd.Data = nil
+
+	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	list := listMessages(c, cmd)
+	return list
+}
+
+func listConversations (c *imap.Client, cmd *imap.Command) []byte {
+	threads := make(map[string]bool)
+	conversations := make(Conversations)
+	conversationsD := make(Conversations)
+
+	for _, rsp := range cmd.Data {
+		threadid := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
+		threads[threadid] = true
+	}
+	cmd.Data = nil
+
+	c.Select("[Gmail]/All Mail", true)
+	for threadid, _ := range threads {
+		conversations[threadid] = threadSearch(c, threadid)
 	}
 
-	bytestring, _ := json.Marshal(messageListDate)
+	for _, value := range conversations {
+		sort.Sort(MessageArray(value))
+		newKey := value[len(value) - 1].Date
+		conversationsD[strconv.FormatInt(newKey.Unix(), 10)] = value
+	}
+
+	bytestring, _ := json.Marshal(conversationsD)
 	return bytestring
 }
 
@@ -101,7 +133,7 @@ func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	cmd.Data = nil
 
 	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
-	bytestring := listMessages(c, cmd)
+	bytestring := listConversations(c, cmd)
 	return bytestring
 }
 
@@ -115,7 +147,7 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 	}
 
 	cmd, _ := imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
-	bytestring := listMessages(c, cmd)
+	bytestring := listConversations(c, cmd)
 
 	return bytestring
 }
