@@ -19,12 +19,15 @@ func requestLogger(handler http.Handler) http.Handler {
 }
 
 func inboxHandler(w http.ResponseWriter, r *http.Request) {
+	c.Select("INBOX", true)
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(listRecent(c, 20)))
 }
 
 func allMailHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "www/index.html")
+	c.Select("[Gmail]/All Mail", true)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(gmailSearch(c, "has:attachment", 20)))
 }
 
 func main() {
@@ -34,7 +37,10 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/Inbox.json", inboxHandler)
-	r.HandleFunc("/AllMail", allMailHandler)
+	r.HandleFunc("/AllMail.json", allMailHandler)
+	r.HandleFunc("/AllMail", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "www/index.html")
+	})
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", requestLogger(http.DefaultServeMux))
