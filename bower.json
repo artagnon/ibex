@@ -5,6 +5,7 @@
 	"bootstrap":    "~3.0.2",
 	"font-awesome": "~4.0.3",
 	"angular":      "~1.2.3",
-	"underscore":   "~1.5.2"
+	"underscore":   "~1.5.2",
+	"momentjs":     "~2.4.0"
     }
 }
