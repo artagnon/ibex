@@ -49,6 +49,9 @@ ibex.controller('Mailbox', ['$scope', '$http', '$location'
     var currentMailbox = scope.currentMailbox;
     currentMailbox = currentMailbox == '/' ? '/Inbox' : currentMailbox;
     http.get(currentMailbox + '.json').success(function(data) {
-	scope.conversations = data;
+	var keys = Object.keys(data).reverse();
+	scope.conversations = _.map(keys, function (key) {
+	    return [key, data[key]];
+	});
     });
 }]);
