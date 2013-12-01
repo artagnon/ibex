@@ -10,13 +10,17 @@
     </div>
     <div class="col-md-10">
       <ul class="list-group">
-	<li class="list-group-item" ng-repeat="conversation in conversations">
+	<li class="list-group-item" ng-repeat="kvalue in conversations">
 	  <div class="row">
-	    <div class="col-md-2">{{format_authors(conversation[1])}}
-	      <span class="badge pull-right">{{conversation[1].length}}</span>
+	    <div class="col-md-2">{{format_authors(kvalue[1])}}
+	      <span class="badge pull-right">{{kvalue[1].length}}</span>
 	    </div>
-	    <div class="col-md-10">{{format_subject(conversation[1][0])}}
-	      <span class="date pull-right">{{format_date(conversation[0])}}</span>
+	    <div class="col-md-10">
+	      <span class="label label-primary" ng-repeat="label in get_labels(kvalue[1])">
+		{{label}}
+	      </span>
+	      <strong>{{format_subject(kvalue[1][0])}}</strong>
+	      <span class="date pull-right">{{format_date(kvalue[0])}}</span>
 	    </div>
 	  </div>
 	</li>

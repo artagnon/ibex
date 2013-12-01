@@ -49,9 +49,18 @@ ibex.controller('Mailbox', ['$scope', '$http', '$location'
     scope.format_date = function (unixdate) {
 	return moment(unixdate, "X").fromNow();
     };
+    scope.get_labels = function (conversation) {
+	var label_ar = _.map(conversation, function (mail) {
+	    return mail["Labels"];
+	});
+	labels = _.intersection.apply(_, label_ar);
+	return _.filter(labels, function (label) {
+	    return label.indexOf("\\");
+	});
+    };
     var currentMailbox = scope.currentMailbox;
     currentMailbox = currentMailbox == '/' ? '/Inbox' : currentMailbox;
-    http.get(currentMailbox + '.json').success(function(data) {
+    http.get(currentMailbox + '.json').success(function (data) {
 	var keys = Object.keys(data).reverse();
 	scope.conversations = _.map(keys, function (key) {
 	    return [key, data[key]];
