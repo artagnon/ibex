@@ -1,7 +1,10 @@
-function format_fname(address) {
-    var name = address["Name"]
+function format_fname (address) {
+    var name = address["Name"];
+    var email = address["Address"];
     if (!name) {
-	return address["Address"].split("@")[0];
+	return email.split("@")[0];
+    } else if (name == "Ramkumar Ramachandra" && email == "artagnon@gmail.com") {
+	return "me";
     } else if (name.indexOf(", ") !== -1) {
 	return name.split(", ")[1];
     } else {
