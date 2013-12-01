@@ -18,6 +18,7 @@ type Message struct {
 	Subject string
 	Date time.Time
 	From *mail.Address
+	Labels []string
 }
 
 type MessageArray []*Message
@@ -38,10 +39,18 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 
 	for _, rsp := range cmd.Data {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
+		labelsRaw := imap.AsList(rsp.MessageInfo().Attrs["X-GM-LABELS"])
+		var labels []string
+		for _, label := range labelsRaw {
+			uqS, ok := imap.Unquote(label.(string))
+			if ok == false { uqS = label.(string) }
+			labels = append(labels, uqS)
+		}
 		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
 			date, _ := msg.Header.Date()
 			fromList, _ := msg.Header.AddressList("From")
-			messageStruct := Message{msg.Header.Get("Subject"), date, fromList[0]}
+			messageStruct := Message{msg.Header.Get("Subject"), date,
+				fromList[0], labels}
 			list = append(list, &messageStruct)
 		}
 	}
@@ -60,7 +69,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 	}
 	cmd.Data = nil
 
-	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID", "X-GM-LABELS"))
 	list := listMessages(c, cmd)
 	return list
 }
