@@ -178,8 +178,9 @@ func main () {
 	fmt.Println(string(listRecent(c, 20)))
 
 	c.Select("[Gmail]/All Mail", true)
-	fmt.Println("\nMessages with attachments:")
-	fmt.Println(string(gmailSearch(c, "has:attachment", 20)))
+	fmt.Println("\nMessages in All Mail:")
+	fmt.Println(string(listRecent(c, 20)))
+	// fmt.Println(string(gmailSearch(c, "has:attachment", 20)))
 
 	// Check command completion status
 	if rsp, err := cmd.Result(imap.OK); err != nil {
