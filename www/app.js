@@ -12,10 +12,24 @@ function format_fname (address) {
     }
 }
 
-var ibex = angular.module('ibex', []);
+var ibex = angular.module('ibex', [
+    'ngRoute'
+]);
 
 ibex.config(['$locationProvider', function (locationProvider) {
     locationProvider.html5Mode(true).hashPrefix('!');
+}]);
+
+ibex.config(['$routeProvider', function (routeProvider) {
+    routeProvider
+	.when('/', {
+	    templateUrl: 'templates/mailbox.html',
+	    controller: 'Mailbox'
+	})
+	.when('/AllMail', {
+	    templateUrl: 'templates/mailbox.html',
+	    controller: 'Mailbox'
+	})
 }]);
 
 ibex.run(['$http', '$location', '$rootScope', '$injector', '$compile'
