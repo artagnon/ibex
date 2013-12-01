@@ -43,7 +43,8 @@ ibex.controller('Mailbox', ['$scope', '$http', '$location'
 , function (scope, http, location) {
     scope.mailboxes = {"/": "Inbox", "/AllMail": "All Mail"};
     scope.format_subject = function (mail) {
-	return mail["Subject"].replace(/^(Re:|Fwd:)+ /, "");
+	var subject = mail["Subject"].replace(/^(Re:|Fwd:)+ /, "");
+	return subject.length > 80 ? subject.slice(0, 77) + "..." : subject;
     };
     scope.format_authors = function (conversation) {
 	var authors = _.map(conversation, function (mail) {
