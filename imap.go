@@ -164,6 +164,7 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 /*
 func main () {
 	c := initClient()
+	if (c == nil) { return }
 
 	// Remember to log out and close the connection when finished
 	defer c.Logout(30 * time.Second)

@@ -32,6 +32,7 @@ func allMailHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	c = initClient()
+	if (c == nil) {	return }
 	c.Select("INBOX", true)
 	defer c.Logout(30 * time.Minute)
 
