@@ -36,8 +36,8 @@ func main() {
 	defer c.Logout(30 * time.Minute)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/Inbox.json", inboxHandler)
-	r.HandleFunc("/AllMail.json", allMailHandler)
+	// r.HandleFunc("/Inbox.json", inboxHandler)
+	// r.HandleFunc("/AllMail.json", allMailHandler)
 	r.HandleFunc("/AllMail", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "www/index.html")
 	})
