@@ -6,4 +6,4 @@ written in Go; the client application is written using Angular.js,
 Underscore and Bootstrap. The Go server establishes an IMAP connection
 and emits JSON data for the client to consume.
 
-![Screenshot](http://i.imgur.com/EvPIKPk.png)
+![Screenshot](http://i.imgur.com/dui01HI.png)
