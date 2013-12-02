@@ -46,11 +46,11 @@ func main() {
 	// r.HandleFunc("/Inbox.json", inboxHandler)
 	// r.HandleFunc("/AllMail.json", allMailHandler)
 	r.HandleFunc("/Messages/{messageID}", messageHandler)
-	r.HandleFunc("/Inbox/{threadID}",
+	r.HandleFunc("/Inbox",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "www/index.html");
 		});
-	r.HandleFunc("/AllMail/{threadID}",
+	r.HandleFunc("/AllMail",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "www/index.html");
 		});
