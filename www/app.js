@@ -36,17 +36,17 @@ ibex.config(['$routeProvider', function (routeProvider) {
 	})
 	.when('/Inbox/:ThreadID', {
 	    templateUrl: '/templates/conversation.html',
-	    controller: 'Mailbox'
+	    controller: 'Conversation'
 	})
 	.when('/AllMail/:ThreadID', {
 	    templateUrl: '/templates/conversation.html',
-	    controller: 'Mailbox'
+	    controller: 'Conversation'
 	})
 }]);
 
-ibex.controller('Mailbox', ['$scope', '$http', '$location', '$routeParams'
-, function (scope, http, location, routeParams) {
-    scope.mailboxes = {"/": "Inbox", "/AllMail": "All Mail"};
+ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$routeParams'
+, function (scope, rootScope, http, location, routeParams) {
+    rootScope.mailboxes = {"/": "Inbox", "/AllMail": "All Mail"};
     scope.format_subject = function (mail) {
 	var subject = mail["Subject"].replace(/^(Re:|Fwd:)+ /, "");
 	return subject.length > 80 ? subject.slice(0, 77) + "..." : subject;
@@ -80,23 +80,31 @@ ibex.controller('Mailbox', ['$scope', '$http', '$location', '$routeParams'
     };
 
     var currentLocation = location.path();
-    scope.currentLocation = currentLocation;
+    rootScope.currentLocation = currentLocation;
     currentLocation = currentLocation == '/' ? '/Inbox' : currentLocation;
 
     scope.goto_conversation = function (conversation) {
 	return location.path(currentLocation + '/' + conversation[0]["ThreadID"]);
     };
-    if (routeParams["ThreadID"]) {
-	console.log(routeParams["ThreadID"]);
-	http.get('/Messages/' + routeParams["ThreadID"]).success(function (data) {
-	    scope.message = data;
+    http.get(currentLocation + '.json').success(function (data) {
+	var keys = Object.keys(data).reverse();
+	rootScope.conversations = _.map(keys, function (key) {
+	    return [key, data[key]];
 	});
-    } else {
-	http.get(currentLocation + '.json').success(function (data) {
-	    var keys = Object.keys(data).reverse();
-	    scope.conversations = _.map(keys, function (key) {
-		return [key, data[key]];
-	    });
-	});
-    }
+    });
+}]);
+
+ibex.controller('Conversation', ['$scope', '$rootScope', '$http', '$location', '$routeParams'
+, function (scope, rootScope, http, location, routeParams) {
+    var messages = _.filter(rootScope.conversations, function (conversation) {
+	if (routeParams["ThreadID"] == conversation[1][0]["ThreadID"]) {
+	    return conversation[1];
+	}
+    });
+    messages = messages[0][1];
+    scope.collapsedMessages = messages.slice(0, messages.length - 2);
+    var detailedMessageID = messages[messages.length - 1]["MessageID"]
+    http.get('/Messages/' + detailedMessageID).success(function (data) {
+	scope.detailedMessage = data;
+    });
 }]);

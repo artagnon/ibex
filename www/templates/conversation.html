@@ -3,7 +3,11 @@
   <div class="row">
     <ng-include src="'/templates/_sidebar.html'"></ng-include>
     <div class="col-md-10">
-      <pre>{{message["Body"]}}</pre>
+      <ul class="list-group">
+	<li class="list-group-item" ng-repeat="collapsedMessage in collapsedMessages">
+	  {{collapsedMessage["MessageID"]}}
+	</li>
+      <pre>{{detailedMessage["Body"]}}</pre>
     </div>
   </div>
 </article>

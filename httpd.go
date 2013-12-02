@@ -45,7 +45,7 @@ func main() {
 	r := mux.NewRouter()
 	// r.HandleFunc("/Inbox.json", inboxHandler)
 	// r.HandleFunc("/AllMail.json", allMailHandler)
-	// r.HandleFunc("/Messages/{messageID}", messageHandler)
+	r.HandleFunc("/Messages/{messageID}", messageHandler)
 	r.HandleFunc("/Inbox/{threadID}",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "www/index.html");
