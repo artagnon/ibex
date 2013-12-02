@@ -10,11 +10,13 @@ and emits JSON data for the client to consume.
 
 ## Hacking
 
-Make sure you have a working Go installation and then do:
+Make sure you have a working Go and
+[bower](https://github.com/bower/bower) installation; then do:
 
 ```
 $ go get github.com/artagnon/ibex
 $ cd $GOPATH/src/github.com/artagnon/ibex
+$ bower install
 ```
 
 Create a `gmail.credentails` with your email and password separated by
