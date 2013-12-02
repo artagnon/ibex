@@ -126,9 +126,13 @@ func initClient () *imap.Client {
 
 	// Authenticate
 	if c.State() == imap.Login {
-		b, err := ioutil.ReadFile("gmail-password.private")
-		if (err != nil) { panic(err) }
-		c.Login("artagnon@gmail.com", strings.TrimRight(string(b), " \r\n"))
+		b, err := ioutil.ReadFile("gmail.credentials")
+		if (err != nil) {
+			fmt.Println(err.Error())
+			return nil
+		}
+		userPass := strings.Split(string(b), "\n")
+		c.Login(userPass[0], userPass[1])
 	}
 
 	return c
