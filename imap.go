@@ -23,6 +23,10 @@ type Message struct {
 	MessageID string
 }
 
+type MessageDetail struct {
+	Body string
+}
+
 type MessageArray []*Message
 type Conversations map[string]MessageArray
 
@@ -181,12 +185,11 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 
 	var body []byte
 	cmd,_ = imap.Wait(c.UIDFetch(set, "RFC822.TEXT"))
-	for _, rsp := range cmd.Data {
-		body = imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.TEXT"])
-	}
+	body = imap.AsBytes(cmd.Data[0].MessageInfo().Attrs["RFC822.TEXT"])
 	cmd.Data = nil
 
-	return body
+	bytestring, _ := json.Marshal(MessageDetail{string(body)})
+	return bytestring
 }
 
 /*
