@@ -144,7 +144,11 @@ func initClient () *imap.Client {
 
 func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	set, _ := imap.NewSeqSet("")
-	cmd, _ := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
+	cmd, err := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
+	if err != nil || cmd.Data == nil {
+		fmt.Println(err.Error())
+		return nil
+	}
 	results := cmd.Data[0].SearchResults()
 	var cut int
 	if (len(results) < limit) { cut = 0; } else { cut = len(results) - limit; }
@@ -178,7 +182,11 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	c.Select("[Gmail]/All Mail", true)
 	set, _ := imap.NewSeqSet("")
 	qS := c.Quote(messageID)
-	cmd, _ := imap.Wait(c.UIDSearch("X-GM-MSGID", qS))
+	cmd, err := imap.Wait(c.UIDSearch("X-GM-MSGID", qS))
+	if err != nil || cmd.Data == nil {
+		fmt.Println(err.Error())
+		return nil
+	}
 	result := cmd.Data[0].SearchResults()[0]
 	set.AddNum(result)
 	cmd.Data = nil
