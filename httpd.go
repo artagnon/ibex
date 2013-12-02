@@ -30,6 +30,12 @@ func allMailHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(gmailSearch(c, "has:attachment", 20)))
 }
 
+func messageHandler(w http.ResponseWriter, r *http.Request) {
+	messageID := mux.Vars(r)["messageID"]
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprint(w, string(fetchMessage(c, messageID)))
+}
+
 func main() {
 	c = initClient()
 	if (c == nil) {	return }
@@ -39,6 +45,7 @@ func main() {
 	r := mux.NewRouter()
 	// r.HandleFunc("/Inbox.json", inboxHandler)
 	// r.HandleFunc("/AllMail.json", allMailHandler)
+	// r.HandleFunc("/Messages/{messageID}", messageHandler)
 	r.HandleFunc("/Inbox/{threadID}",
 		func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "www/index.html");
