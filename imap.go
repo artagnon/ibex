@@ -69,7 +69,11 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 
 func threadSearch (c *imap.Client, threadID string) []*Message {
 	set, _ := imap.NewSeqSet("")
-	cmd, _ := imap.Wait(c.Search("X-GM-THRID", c.Quote(threadID)))
+	cmd, err := imap.Wait(c.Search("X-GM-THRID", c.Quote(threadID)))
+	if (err != nil || cmd.Data == nil) {
+		fmt.Println(err.Error())
+		return nil
+	}
 	results := cmd.Data[0].SearchResults()
 	if set.AddNum(results...); set.Empty() {
 		fmt.Println("Error: No search results")
@@ -77,8 +81,13 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 	}
 	cmd.Data = nil
 
-	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID",
+	cmd, err = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID",
 		"X-GM-MSGID", "X-GM-LABELS"))
+	if (err != nil || cmd.Data == nil) {
+		fmt.Println(err.Error())
+		return nil
+	}
+
 	list := listMessages(c, cmd)
 	return list
 }
@@ -145,7 +154,7 @@ func initClient () *imap.Client {
 func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	set, _ := imap.NewSeqSet("")
 	cmd, err := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
-	if err != nil || cmd.Data == nil {
+	if (err != nil || cmd.Data == nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -153,12 +162,16 @@ func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	var cut int
 	if (len(results) < limit) { cut = 0; } else { cut = len(results) - limit; }
 	if set.AddNum(results[cut:]...); set.Empty() {
-		fmt.Println("Error: No time to complete search")
+		fmt.Println("Error: Empty search")
 		return nil
 	}
 	cmd.Data = nil
 
-	cmd, _ = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	cmd, err = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	if (err != nil || cmd.Data == nil) {
+		fmt.Println(err.Error())
+		return nil
+	}
 	bytestring := listConversations(c, cmd)
 	return bytestring
 }
@@ -172,7 +185,11 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 		set.Add("1:*")
 	}
 
-	cmd, _ := imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	cmd, err := imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
+	if (err != nil || cmd.Data == nil) {
+		fmt.Println(err.Error())
+		return nil
+	}
 	bytestring := listConversations(c, cmd)
 
 	return bytestring
@@ -183,7 +200,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	set, _ := imap.NewSeqSet("")
 	qS := c.Quote(messageID)
 	cmd, err := imap.Wait(c.UIDSearch("X-GM-MSGID", qS))
-	if err != nil || cmd.Data == nil {
+	if (err != nil || cmd.Data == nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -192,11 +209,19 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	cmd.Data = nil
 
 	var body []byte
-	cmd,_ = imap.Wait(c.UIDFetch(set, "RFC822.TEXT"))
+	cmd, err = imap.Wait(c.UIDFetch(set, "RFC822.TEXT"))
+	if (err != nil || cmd.Data == nil) {
+		fmt.Println(err.Error())
+		return nil
+	}
 	body = imap.AsBytes(cmd.Data[0].MessageInfo().Attrs["RFC822.TEXT"])
 	cmd.Data = nil
 
-	bytestring, _ := json.Marshal(MessageDetail{string(body)})
+	bytestring, err := json.Marshal(MessageDetail{string(body)})
+	if (err != nil || cmd.Data == nil) {
+		fmt.Println(err.Error())
+		return nil
+	}
 	return bytestring
 }
 
