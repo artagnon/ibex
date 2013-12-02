@@ -1,17 +1,11 @@
-<ng-include src="'templates/_nav.html'"></ng-include>
+<ng-include src="'/templates/_nav.html'"></ng-include>
 <article>
   <div class="row">
-    <div class="col-md-2">
-      <ul class="nav nav-pills nav-stacked">
-	<li ng-repeat="(path, name) in mailboxes" ng-class="path == currentMailbox ? 'active' : ''">
-	  <a href="{{path}}">{{name}}</a>
-	</li>
-      </ul>
-    </div>
+    <ng-include src="'/templates/_sidebar.html'"></ng-include>
     <div class="col-md-10">
       <ul class="list-group">
 	<li class="list-group-item" ng-repeat="kvalue in conversations">
-	  <div class="row">
+	  <div class="conversation-row row" ng-click="goto_conversation(kvalue[1])">
 	    <div class="col-md-2">{{format_authors(kvalue[1])}}
 	      <span class="badge pull-right">{{kvalue[1].length}}</span>
 	    </div>

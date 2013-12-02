@@ -23,24 +23,29 @@ ibex.config(['$locationProvider', function (locationProvider) {
 ibex.config(['$routeProvider', function (routeProvider) {
     routeProvider
 	.when('/', {
-	    templateUrl: 'templates/mailbox.html',
+	    templateUrl: '/templates/mailbox.html',
+	    controller: 'Mailbox'
+	})
+	.when('/Inbox', {
+	    templateUrl: '/templates/mailbox.html',
 	    controller: 'Mailbox'
 	})
 	.when('/AllMail', {
-	    templateUrl: 'templates/mailbox.html',
+	    templateUrl: '/templates/mailbox.html',
+	    controller: 'Mailbox'
+	})
+	.when('/Inbox/:ThreadID', {
+	    templateUrl: '/templates/conversation.html',
+	    controller: 'Mailbox'
+	})
+	.when('/AllMail/:ThreadID', {
+	    templateUrl: '/templates/conversation.html',
 	    controller: 'Mailbox'
 	})
 }]);
 
-ibex.run(['$http', '$location', '$rootScope', '$injector', '$compile'
-, function (http, location, rootScope, injector, compile) {
-    rootScope.$on('$locationChangeSuccess', function (event, next, current) {
-	rootScope.currentMailbox = location.path();
-    });
-}]);
-
-ibex.controller('Mailbox', ['$scope', '$http', '$location'
-, function (scope, http, location) {
+ibex.controller('Mailbox', ['$scope', '$http', '$location', '$routeParams'
+, function (scope, http, location, routeParams) {
     scope.mailboxes = {"/": "Inbox", "/AllMail": "All Mail"};
     scope.format_subject = function (mail) {
 	var subject = mail["Subject"].replace(/^(Re:|Fwd:)+ /, "");
@@ -73,12 +78,25 @@ ibex.controller('Mailbox', ['$scope', '$http', '$location'
 	    return label.indexOf("\\");
 	});
     };
-    var currentMailbox = scope.currentMailbox;
-    currentMailbox = currentMailbox == '/' ? '/Inbox' : currentMailbox;
-    http.get(currentMailbox + '.json').success(function (data) {
-	var keys = Object.keys(data).reverse();
-	scope.conversations = _.map(keys, function (key) {
-	    return [key, data[key]];
+
+    var currentLocation = location.path();
+    scope.currentLocation = currentLocation;
+    currentLocation = currentLocation == '/' ? '/Inbox' : currentLocation;
+
+    scope.goto_conversation = function (conversation) {
+	return location.path(currentLocation + '/' + conversation[0]["ThreadID"]);
+    };
+    if (routeParams["ThreadID"]) {
+	console.log(routeParams["ThreadID"]);
+	http.get('/Messages/' + routeParams["ThreadID"]).success(function (data) {
+	    scope.message = data;
 	});
-    });
+    } else {
+	http.get(currentLocation + '.json').success(function (data) {
+	    var keys = Object.keys(data).reverse();
+	    scope.conversations = _.map(keys, function (key) {
+		return [key, data[key]];
+	    });
+	});
+    }
 }]);

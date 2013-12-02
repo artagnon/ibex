@@ -1,0 +1,7 @@
+<div class="col-md-2">
+  <ul class="nav nav-pills nav-stacked">
+    <li ng-repeat="(path, name) in mailboxes" ng-class="path == currentLocation ? 'active' : ''">
+      <a ng-href="{{path}}">{{name}}</a>
+    </li>
+  </ul>
+</div>
