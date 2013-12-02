@@ -101,7 +101,7 @@ ibex.controller('Conversation', ['$scope', '$rootScope', '$http', '$location', '
 	}
     });
     messages = messages[0][1];
-    scope.collapsedMessages = messages.slice(0, messages.length - 2);
+    scope.collapsedMessages = messages.slice(0, messages.length - 1);
     var detailedMessageID = messages[messages.length - 1]["MessageID"]
     http.get('/Messages/' + detailedMessageID).success(function (data) {
 	scope.detailedMessage = data;
