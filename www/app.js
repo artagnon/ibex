@@ -95,6 +95,11 @@ ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$rout
 
 ibex.controller('Conversation', ['$scope', '$rootScope', '$http', '$location', '$routeParams'
 , function (scope, rootScope, http, location, routeParams) {
+    scope.expand_message = function (message, event) {
+	http.get('/Messages/' + message["MessageID"]).success(function (data) {
+	    $(event.target).text(data["Body"]);
+	});
+    };
     var messages = _.filter(rootScope.conversations, function (conversation) {
 	if (routeParams["ThreadID"] == conversation[1][0]["ThreadID"]) {
 	    return conversation[1];

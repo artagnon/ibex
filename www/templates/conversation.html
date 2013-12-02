@@ -4,10 +4,11 @@
     <ng-include src="'/templates/_sidebar.html'"></ng-include>
     <div class="col-md-10">
       <ul class="list-group">
-	<li class="list-group-item" ng-repeat="collapsedMessage in collapsedMessages">
-	  {{collapsedMessage["MessageID"]}}
+	<li class="list-group-item anchor-item" ng-repeat="collapsedMessage in collapsedMessages"
+	    ng-click="expand_message(collapsedMessage, $event)">
+	  <pre>{{collapsedMessage["MessageID"]}}</pre>
 	</li>
-      <pre>{{detailedMessage["Body"]}}</pre>
+	<li class="list-group-item anchor-item"><pre>{{detailedMessage["Body"]}}</pre></li>
     </div>
   </div>
 </article>
