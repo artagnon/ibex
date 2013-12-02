@@ -166,6 +166,25 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 	return bytestring
 }
 
+func fetchMessage (c *imap.Client, messageID string) []byte {
+	c.Select("[Gmail]/All Mail", true)
+	set, _ := imap.NewSeqSet("")
+	qS := c.Quote(messageID)
+	cmd, _ := imap.Wait(c.UIDSearch("X-GM-MSGID", qS))
+	result := cmd.Data[0].SearchResults()[0]
+	set.AddNum(result)
+	cmd.Data = nil
+
+	var body []byte
+	cmd,_ = imap.Wait(c.UIDFetch(set, "RFC822.TEXT"))
+	for _, rsp := range cmd.Data {
+		body = imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.TEXT"])
+	}
+	cmd.Data = nil
+
+	return body
+}
+
 /*
 func main () {
 	c := initClient()
@@ -196,6 +215,8 @@ func main () {
 	fmt.Println("\nMessages in All Mail:")
 	fmt.Println(string(listRecent(c, 20)))
 	// fmt.Println(string(gmailSearch(c, "has:attachment", 20)))
+
+	fmt.Println(string(fetchMessage(c, "1452889506408166778")));
 
 	// Check command completion status
 	if rsp, err := cmd.Result(imap.OK); err != nil {
