@@ -55,8 +55,9 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 			labels = append(labels, uqS)
 		}
 		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
-			date, _ := msg.Header.Date()
-			fromList, _ := msg.Header.AddressList("From")
+			date, err := msg.Header.Date()
+			fromList, err := msg.Header.AddressList("From")
+			if (err != nil) { panic(err.Error()) }
 			messageStruct := Message{msg.Header.Get("Subject"), date,
 				fromList[0], labels, threadID, messageID}
 			list = append(list, &messageStruct)
