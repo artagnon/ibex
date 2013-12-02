@@ -79,9 +79,8 @@ ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$rout
 	});
     };
 
-    var currentLocation = location.path();
-    rootScope.currentLocation = currentLocation;
-    currentLocation = currentLocation == '/' ? '/Inbox' : currentLocation;
+    rootScope.currentLocation = location.path();
+    var currentLocation = rootScope.currentLocation == '/' ? '/Inbox' : rootScope.currentLocation;
 
     scope.goto_conversation = function (conversation) {
 	return location.path(currentLocation + '/' + conversation[0]["ThreadID"]);
