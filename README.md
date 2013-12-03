@@ -6,9 +6,34 @@ written in Go; the client application is written using Angular.js,
 Underscore and Bootstrap. The Go server establishes an IMAP connection
 and emits JSON data for the client to consume.
 
+This is pre-alpha software, so expect lots of bugs.
+
 ![Screenshot](http://i.imgur.com/dui01HI.png)
 
-## Hacking
+## Why another email client?
+
+Because existing open source clients don't even have feature parity
+with the Gmail web interface. ibex implements [Gmail IMAP
+extensions](https://developers.google.com/gmail/imap_extensions):
+
+1. Using X-GM-MSGID and X-GM-THRID, it groups individual emails into
+   conversations. This is a very expensive operation, and is the
+   reason mailboxes take a long time to load.
+
+2. Using X-GM-LABELS, it fetches labels for individual
+   messages. Conversation labels are then derived from individual
+   message labels.
+
+3. Using X-GM-RAW, it provides a way to do server-side search using
+   Gmail's syntax. This can be really slow because IMAP SEARCH does
+   not provide a way to LIMIT results.
+
+The plan is to build a storage backend so that emails received over
+IMAP are stored. Existing clients like [sup](http://supmua.org) work
+with maildir/mbox, but those formats have no way to represent
+conversations and labels.
+
+## Running
 
 Make sure you have a working Go and
 [bower](https://github.com/bower/bower) installation; then do:
@@ -20,18 +45,12 @@ $ bower install
 ```
 
 Create a `gmail.credentails` with your email and password separated by
-a newline. Then uncomment these two lines in httpd.go:
-
-```go
-	// r.HandleFunc("/Inbox.json", inboxHandler)
-	// r.HandleFunc("/AllMail.json", allMailHandler)
-```
-
-Now run `ibex`, navigate to `http://localhost:8080` and wait
-for the messages to load.
+a newline. Then run `ibex`, navigate to `http://localhost:8080` and
+*wait* for the messages to load. Don't try a second operation before
+the original one completes.
 
 When you get annoyed with the amount of time it takes to render,
 uncomment the `main` function in imap.go temporarily, `go build
 imap.go`, then dump the JSON into `www/Inbox.json` and
-`www/AllMail.json`. Let the corresponding lines in httpd.go remain
-commented out.
+`www/AllMail.json`. Comment out the corresponding endpoints in
+httpd.go.
