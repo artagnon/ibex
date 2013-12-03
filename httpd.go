@@ -29,7 +29,7 @@ func allMailHandler(w http.ResponseWriter, r *http.Request) {
 	c.Select("[Gmail]/All Mail", true)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
-	fmt.Fprint(w, string(gmailSearch(c, "has:attachment", 20)))
+	fmt.Fprint(w, string(listRecent(c, 20)))
 }
 
 func messageHandler(w http.ResponseWriter, r *http.Request) {
