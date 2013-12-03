@@ -21,18 +21,21 @@ func requestLogger(handler http.Handler) http.Handler {
 func inboxHandler(w http.ResponseWriter, r *http.Request) {
 	c.Select("INBOX", true)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-cache")
 	fmt.Fprint(w, string(listRecent(c, 20)))
 }
 
 func allMailHandler(w http.ResponseWriter, r *http.Request) {
 	c.Select("[Gmail]/All Mail", true)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-cache")
 	fmt.Fprint(w, string(gmailSearch(c, "has:attachment", 20)))
 }
 
 func messageHandler(w http.ResponseWriter, r *http.Request) {
 	messageID := mux.Vars(r)["messageID"]
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-cache")
 	fmt.Fprint(w, string(fetchMessage(c, messageID)))
 }
 
@@ -43,8 +46,8 @@ func main() {
 	defer c.Logout(30 * time.Minute)
 
 	r := mux.NewRouter()
-	// r.HandleFunc("/Inbox.json", inboxHandler)
-	// r.HandleFunc("/AllMail.json", allMailHandler)
+	r.HandleFunc("/Inbox.json", inboxHandler)
+	r.HandleFunc("/AllMail.json", allMailHandler)
 	r.HandleFunc("/Messages/{messageID}", messageHandler)
 	r.HandleFunc("/Inbox",
 		func(w http.ResponseWriter, r *http.Request) {
