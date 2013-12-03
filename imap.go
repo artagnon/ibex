@@ -46,7 +46,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 	for _, rsp := range cmd.Data {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["RFC822.HEADER"])
 		threadID, _ := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
-		messageID, _ :=rsp.MessageInfo().Attrs["X-GM-MSGID"].(string)
+		messageID, _ := rsp.MessageInfo().Attrs["X-GM-MSGID"].(string)
 		labelsRaw := imap.AsList(rsp.MessageInfo().Attrs["X-GM-LABELS"])
 		var labels []string
 		for _, label := range labelsRaw {
@@ -54,14 +54,24 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 			if ok == false { uqS = label.(string) }
 			labels = append(labels, uqS)
 		}
-		if msg, _ := mail.ReadMessage(bytes.NewReader(header)); msg != nil {
-			date, err := msg.Header.Date()
-			fromList, err := msg.Header.AddressList("From")
-			if (err != nil) { panic(err.Error()) }
-			messageStruct := Message{msg.Header.Get("Subject"), date,
-				fromList[0], labels, threadID, messageID}
-			list = append(list, &messageStruct)
+		msg, err := mail.ReadMessage(bytes.NewReader(header))
+		if (err != nil) {
+			fmt.Println(err.Error())
+			continue
 		}
+		date, err := msg.Header.Date()
+		if (err != nil) {
+			fmt.Println(err.Error())
+			continue
+		}
+		fromList, err := msg.Header.AddressList("From")
+		if (err != nil) {
+			fmt.Println(err.Error())
+			continue
+		}
+		messageStruct := Message{msg.Header.Get("Subject"), date,
+			fromList[0], labels, threadID, messageID}
+		list = append(list, &messageStruct)
 	}
 	cmd.Data = nil
 
