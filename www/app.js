@@ -86,6 +86,7 @@ ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$rout
 	return location.path(currentLocation + '/' + conversation[0]["ThreadID"]);
     };
     http.get(currentLocation + '.json').success(function (data) {
+	if (!data) { return; }
 	var keys = Object.keys(data).reverse();
 	rootScope.conversations = _.map(keys, function (key) {
 	    return [key, data[key]];
