@@ -71,7 +71,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 func threadSearch (c *imap.Client, threadID string) []*Message {
 	set, _ := imap.NewSeqSet("")
 	cmd, err := imap.Wait(c.Search("X-GM-THRID", c.Quote(threadID)))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -84,7 +84,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 
 	cmd, err = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID",
 		"X-GM-MSGID", "X-GM-LABELS"))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -159,7 +159,7 @@ func initClient () *imap.Client {
 func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	set, _ := imap.NewSeqSet("")
 	cmd, err := imap.Wait(c.Search("X-GM-RAW", c.Quote(searchString)))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -173,7 +173,7 @@ func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	cmd.Data = nil
 
 	cmd, err = imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -194,7 +194,7 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 	}
 
 	cmd, err := imap.Wait(c.Fetch(set, "RFC822.HEADER", "X-GM-THRID"))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -208,7 +208,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	set, _ := imap.NewSeqSet("")
 	qS := c.Quote(messageID)
 	cmd, err := imap.Wait(c.UIDSearch("X-GM-MSGID", qS))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -218,7 +218,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 
 	var body []byte
 	cmd, err = imap.Wait(c.UIDFetch(set, "RFC822.TEXT"))
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -226,7 +226,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	cmd.Data = nil
 
 	bytestring, err := json.Marshal(MessageDetail{string(body)})
-	if (err != nil || cmd.Data == nil) {
+	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
