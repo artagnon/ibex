@@ -109,7 +109,11 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 		conversations[threadid] = threadSearch(c, threadid)
 	}
 
-	for _, value := range conversations {
+	for key, value := range conversations {
+		if (value == nil) {
+			fmt.Println("Error: conversation with key", key, "wasn't fetched")
+			continue;
+		}
 		sort.Sort(MessageArray(value))
 		newKey := value[len(value) - 1].Date
 		conversationsD[strconv.FormatInt(newKey.Unix(), 10)] = value
