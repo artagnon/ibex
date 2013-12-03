@@ -178,8 +178,11 @@ func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 }
 
 func listRecent (c *imap.Client, limit uint32) []byte {
-	// Fetch the headers of the 10 most recent messages
 	set, _ := imap.NewSeqSet("")
+	if (c.Mailbox == nil) {
+		fmt.Println("Error: No mailbox selected")
+		return nil
+	}
 	if c.Mailbox.Messages > limit {
 		set.AddRange(c.Mailbox.Messages - limit, c.Mailbox.Messages)
 	} else {
