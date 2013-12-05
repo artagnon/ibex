@@ -14,3 +14,8 @@ article {
 .form-control {
     width: 500px;
 }
+
+.global-loading {
+    padding-left: 10px;
+    padding-top: 15px;
+}

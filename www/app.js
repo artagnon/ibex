@@ -85,21 +85,31 @@ ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$rout
     scope.goto_conversation = function (conversation) {
 	return location.path(currentLocation + '/' + conversation[0]["ThreadID"]);
     };
-    rootScope.conversations = null
+    rootScope.conversations = null;
+    if (rootScope.loading) {
+	return;
+    }
+    rootScope.loading = true;
     http.get(currentLocation + '.json').success(function (data) {
 	if (!data) { return; }
 	var keys = Object.keys(data).reverse();
 	rootScope.conversations = _.map(keys, function (key) {
 	    return [key, data[key]];
 	});
+	rootScope.loading = false;
     });
 }]);
 
 ibex.controller('Conversation', ['$scope', '$rootScope', '$http', '$location', '$routeParams'
 , function (scope, rootScope, http, location, routeParams) {
     scope.expand_message = function (message, event) {
+	if (rootScope.loading) {
+	    return;
+	}
+	rootScope.loading = true;
 	http.get('/Messages/' + message["MessageID"]).success(function (data) {
 	    $(event.target).text(data["Body"]);
+	    rootScope.loading = false;
 	});
     };
     var messages = _.filter(rootScope.conversations, function (conversation) {
@@ -110,7 +120,12 @@ ibex.controller('Conversation', ['$scope', '$rootScope', '$http', '$location', '
     messages = messages[0][1];
     scope.collapsedMessages = messages.slice(0, messages.length - 1);
     var detailedMessageID = messages[messages.length - 1]["MessageID"]
+    if (rootScope.loading) {
+	return;
+    }
+    rootScope.loading = true;
     http.get('/Messages/' + detailedMessageID).success(function (data) {
 	scope.detailedMessage = data;
+	rootScope.loading = false;
     });
 }]);
