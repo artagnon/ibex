@@ -6,7 +6,7 @@
       <ul class="list-group">
 	<li class="list-group-item anchor-item" ng-repeat="collapsedMessage in collapsedMessages"
 	    ng-click="expand_message(collapsedMessage, $event)">
-	  <pre>{{collapsedMessage["MessageID"]}}</pre>
+	  <pre><strong>{{collapsedMessage["From"]["Name"]}}</strong></pre>
 	</li>
 	<li class="list-group-item anchor-item"><pre>{{detailedMessage["Body"]}}</pre></li>
     </div>
