@@ -1,5 +1,4 @@
 article {
-    padding-top: 70px;
     padding-left: 20px;
     padding-right: 20px;
 }
@@ -10,4 +9,8 @@ article {
 
 .anchor-item {
     cursor: pointer;
+}
+
+.form-control {
+    width: 500px;
 }

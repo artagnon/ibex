@@ -1,15 +1,13 @@
-<div class="navbar navbar-default navbar-fixed-top">
-  <a href="/" class="navbar-brand">ibex</a>
-  <ul ng-show="user.name" class="nav navbar-nav navbar-right">
-    <li>
-      <a href="/">
-        <span ng-bind="user.name"></span>
-      </a>
-    </li>
-    <li>
-      <a target="_self" href="logout" title="Logout">
-        <i class="fa fa-lg fa-sign-out"></i>
-      </a>
-    </li>
-  </ul>
-</div>
+<article>
+  <div class="navbar navbar-default row">
+    <div class="col-md-2">
+      <a class="navbar-brand" href="#">ibex</a>
+    </div>
+    <form class="navbar-form navbar-left col-md-10" role="search">
+      <div class="form-group">
+	<input type="text" class="form-control" placeholder="Search">
+      </div>
+      <button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>
+    </form>
+  </div>
+</article>
