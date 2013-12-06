@@ -18,6 +18,7 @@ type Message struct {
 	Subject string
 	Date time.Time
 	From *mail.Address
+	Flags []string
 	Labels []string
 	ThreadID string
 	MessageID string
@@ -40,6 +41,16 @@ func (s MessageArray) Less(i, j int) bool {
 	return s[i].Date.Before(s[j].Date)
 }
 
+func extractQuotedList (listRaw []imap.Field) []string {
+	var list []string
+	for _, item := range listRaw {
+		uqS, ok := imap.Unquote(item.(string))
+		if ok == false { uqS = item.(string) }
+		list = append(list, uqS)
+	}
+	return list
+}
+
 func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 	var list MessageArray
 
@@ -47,13 +58,10 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 		header := imap.AsBytes(rsp.MessageInfo().Attrs["BODY[HEADER]"])
 		threadID, _ := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
 		messageID, _ := rsp.MessageInfo().Attrs["X-GM-MSGID"].(string)
+		flagsRaw := imap.AsList(rsp.MessageInfo().Attrs["FLAGS"])
 		labelsRaw := imap.AsList(rsp.MessageInfo().Attrs["X-GM-LABELS"])
-		var labels []string
-		for _, label := range labelsRaw {
-			uqS, ok := imap.Unquote(label.(string))
-			if ok == false { uqS = label.(string) }
-			labels = append(labels, uqS)
-		}
+		flags := extractQuotedList(flagsRaw)
+		labels := extractQuotedList(labelsRaw)
 		msg, err := mail.ReadMessage(bytes.NewReader(header))
 		if (err != nil) {
 			fmt.Println(err.Error())
@@ -70,7 +78,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 			continue
 		}
 		messageStruct := Message{msg.Header.Get("Subject"), date,
-			fromList[0], labels, threadID, messageID}
+			fromList[0], flags, labels, threadID, messageID}
 		list = append(list, &messageStruct)
 	}
 	cmd.Data = nil
@@ -93,7 +101,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 	cmd.Data = nil
 
 	cmd, err = imap.Wait(c.Fetch(set, "BODY[HEADER]", "X-GM-THRID",
-		"X-GM-MSGID", "X-GM-LABELS"))
+		"X-GM-MSGID", "FLAGS", "X-GM-LABELS"))
 	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
