@@ -42,6 +42,9 @@ ibex.config(['$routeProvider', function (routeProvider) {
 	    templateUrl: '/templates/conversation.html',
 	    controller: 'Conversation'
 	})
+	.otherwise({
+	    redirectTo: '/'
+	})
 }]);
 
 ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$routeParams'
