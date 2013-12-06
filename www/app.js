@@ -54,6 +54,12 @@ ibex.controller('Mailbox', ['$scope', '$rootScope', '$http', '$location', '$rout
 	var subject = mail["Subject"].replace(/^(Re:|Fwd:)+ /, "");
 	return subject.length > 80 ? subject.slice(0, 77) + "..." : subject;
     };
+    scope.is_unread = function (conversation) {
+	unreadList = _.filter(conversation, function(mail) {
+	    return !mail["Flags"];
+	})
+	return unreadList[0];
+    };
     scope.format_authors = function (conversation) {
 	var authors = _.map(conversation, function (mail) {
 	    return format_fname(mail["From"]);

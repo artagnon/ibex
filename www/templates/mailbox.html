@@ -6,7 +6,7 @@
       <ul class="list-group">
 	<li class="list-group-item anchor-item" ng-repeat="kvalue in conversations"
 	    ng-click="goto_conversation(kvalue[1])">
-	  <div class="row">
+	  <div ng-class="{row: true, unread: is_unread(kvalue[1])}">
 	    <div class="col-md-2">{{format_authors(kvalue[1])}}
 	      <span class="badge pull-right">{{kvalue[1].length}}</span>
 	    </div>
@@ -14,7 +14,7 @@
 	      <span class="label label-primary" ng-repeat="label in get_labels(kvalue[1])">
 		{{label}}
 	      </span>
-	      <strong>{{format_subject(kvalue[1][0])}}</strong>
+	      {{format_subject(kvalue[1][0])}}
 	      <span class="date pull-right">{{format_date(kvalue[0])}}</span>
 	    </div>
 	  </div>

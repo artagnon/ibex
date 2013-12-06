@@ -19,3 +19,7 @@ article {
     padding-left: 10px;
     padding-top: 15px;
 }
+
+.row.unread {
+    font-weight: bold;
+}
