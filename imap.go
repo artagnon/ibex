@@ -227,12 +227,12 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	cmd.Data = nil
 
 	var body []byte
-	cmd, err = imap.Wait(c.UIDFetch(set, "RFC822.TEXT"))
+	cmd, err = imap.Wait(c.UIDFetch(set, "BODY[]"))
 	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
 	}
-	body = imap.AsBytes(cmd.Data[0].MessageInfo().Attrs["RFC822.TEXT"])
+	body = imap.AsBytes(cmd.Data[0].MessageInfo().Attrs["BODY[]"])
 	cmd.Data = nil
 
 	bytestring, err := json.Marshal(MessageDetail{string(body)})
