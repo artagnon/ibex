@@ -182,7 +182,7 @@ func gmailSearch (c *imap.Client, searchString string, limit int) []byte {
 	}
 	cmd.Data = nil
 
-	cmd, err = imap.Wait(c.Fetch(set, "BODY[HEADER]", "X-GM-THRID"))
+	cmd, err = imap.Wait(c.Fetch(set, "X-GM-THRID"))
 	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
@@ -203,7 +203,7 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 		set.Add("1:*")
 	}
 
-	cmd, err := imap.Wait(c.Fetch(set, "BODY[HEADER]", "X-GM-THRID"))
+	cmd, err := imap.Wait(c.Fetch(set, "X-GM-THRID"))
 	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
