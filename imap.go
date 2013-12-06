@@ -100,7 +100,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 	}
 	cmd.Data = nil
 
-	cmd, err = imap.Wait(c.Fetch(set, "BODY[HEADER]", "X-GM-THRID",
+	cmd, err = imap.Wait(c.Fetch(set, "BODY.PEEK[HEADER]", "X-GM-THRID",
 		"X-GM-MSGID", "FLAGS", "X-GM-LABELS"))
 	if (err != nil) {
 		fmt.Println(err.Error())
@@ -235,7 +235,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	cmd.Data = nil
 
 	var body []byte
-	cmd, err = imap.Wait(c.UIDFetch(set, "BODY[]"))
+	cmd, err = imap.Wait(c.UIDFetch(set, "BODY.PEEK[]"))
 	if (err != nil) {
 		fmt.Println(err.Error())
 		return nil
