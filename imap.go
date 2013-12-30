@@ -251,8 +251,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 	return bytestring
 }
 
-/*
-func main () {
+func imapMain () {
 	c := initClient()
 	if (c == nil) { return }
 
@@ -293,4 +292,3 @@ func main () {
 		}
 	}
 }
-*/

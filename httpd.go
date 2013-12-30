@@ -39,7 +39,7 @@ func messageHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(fetchMessage(c, messageID)))
 }
 
-func main() {
+func httpMain() {
 	c = initClient()
 	if (c == nil) {	return }
 	c.Select("INBOX", true)
