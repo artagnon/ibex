@@ -66,9 +66,6 @@ func dbMain() {
 		log.Printf("    %d: %v\n", x, p)
 	}
 
-	// drop the thread_label_mapper
-	_, err = dbmap.Exec("drop table thread_label_mapper")
-
 	// delete row by PK
 	count, err = dbmap.Delete(&p1)
 	checkErr(err, "Delete failed")
@@ -140,7 +137,7 @@ func initDb() *gorp.DbMap {
 	dbmap.AddTableWithName(Label{}, "label").SetKeys(true, "Id")
 
 	// add many-to-many relationship table
-	sql := `create table thread_label_mapper (
+	sql := `create table if not exists thread_label_mapper (
 	thread_id integer, label_id integer,
 	foreign key(thread_id) references thread(id) on delete cascade,
 	foreign key(label_id) references label(id) on delete cascade
