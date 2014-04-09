@@ -5,7 +5,6 @@ import (
 	"github.com/coopernurse/gorp"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
-	"time"
 )
 
 func dbMain() {
@@ -18,41 +17,57 @@ func dbMain() {
 	checkErr(err, "TruncateTables failed")
 
 	// create two posts
-	p1 := newPost("Go 1.1 released!", "Lorem ipsum lorem ipsum")
-	p2 := newPost("Go 1.2 released!", "Lorem ipsum lorem ipsum")
+	p1 := newThread("938249")
+	p2 := newThread("324985")
 
 	// insert rows - auto increment PKs will be set properly after the insert
 	err = dbmap.Insert(&p1, &p2)
 	checkErr(err, "Insert failed")
 
 	// use convenience SelectInt
-	count, err := dbmap.SelectInt("select count(*) from posts")
+	count, err := dbmap.SelectInt("select count(*) from thread")
 	checkErr(err, "select count(*) failed")
 	log.Println("Rows after inserting:", count)
 
 	// update a row
-	p2.Title = "Go 1.2 is better than ever"
+	p2.Thread = "932849"
 	count, err = dbmap.Update(&p2)
 	checkErr(err, "Update failed")
 	log.Println("Rows updated:", count)
 
 	// fetch one row - note use of "post_id" instead of "Id" since column is aliased
-	//
-	// Postgres users should use $1 instead of ? placeholders
-	// See 'Known Issues' below
-	//
-	err = dbmap.SelectOne(&p2, "select * from posts where post_id=?", p2.Id)
+	err = dbmap.SelectOne(&p2, "select * from thread where id=?", p2.Id)
 	checkErr(err, "SelectOne failed")
 	log.Println("p2 row:", p2)
 
 	// fetch all rows
-	var posts []Post
-	_, err = dbmap.Select(&posts, "select * from posts order by post_id")
+	var threads []Thread
+	_, err = dbmap.Select(&threads, "select * from thread order by id")
 	checkErr(err, "Select failed")
 	log.Println("All rows:")
-	for x, p := range posts {
+	for x, p := range threads {
 		log.Printf("    %d: %v\n", x, p)
 	}
+
+	// create relationships
+	l1 := newLabel("git")
+	l2 := newLabel("linux")
+	err = dbmap.Insert(&l1, &l2)
+	m1 := newThreadLabelMapper(p1.Id, l1.Id)
+	m2 := newThreadLabelMapper(p1.Id, l2.Id)
+	err = dbmap.Insert(&m1, &m2)
+
+	// fetch all relationships
+	var mappings []ThreadLabelMapper
+	_, err = dbmap.Select(&mappings, "select * from thread_label_mapper")
+	checkErr(err, "Select failed")
+	log.Println("All mappings:")
+	for x, p := range mappings {
+		log.Printf("    %d: %v\n", x, p)
+	}
+
+	// drop the thread_label_mapper
+	_, err = dbmap.Exec("drop table thread_label_mapper")
 
 	// delete row by PK
 	count, err = dbmap.Delete(&p1)
@@ -60,30 +75,48 @@ func dbMain() {
 	log.Println("Rows deleted:", count)
 
 	// delete row manually via Exec
-	_, err = dbmap.Exec("delete from posts where post_id=?", p2.Id)
+	_, err = dbmap.Exec("delete from thread where id=?", p2.Id)
 	checkErr(err, "Exec failed")
 
 	// confirm count is zero
-	count, err = dbmap.SelectInt("select count(*) from posts")
+	count, err = dbmap.SelectInt("select count(*) from thread")
 	checkErr(err, "select count(*) failed")
 	log.Println("Row count - should be zero:", count)
 
 	log.Println("Done!")
 }
 
-type Post struct {
-	// db tag lets you specify the column name if it differs from the struct field
-	Id      int64 `db:"post_id"`
-	Created int64
-	Title   string
-	Body    string
+type Thread struct {
+	Id       int64
+	Thread   string
 }
 
-func newPost(title, body string) Post {
-	return Post{
-		Created: time.Now().UnixNano(),
-		Title:   title,
-		Body:    body,
+type Label struct {
+	Id      int64
+	Label   string
+}
+
+type ThreadLabelMapper struct {
+	ThreadID int64 `db:"thread_id"`
+	LabelID  int64 `db:"label_id"`
+}
+
+func newThread(thread string) Thread {
+	return Thread{
+		Thread: thread,
+	}
+}
+
+func newLabel(label string) Label {
+	return Label{
+		Label: label,
+	}
+}
+
+func newThreadLabelMapper(threadID int64, labelID int64) ThreadLabelMapper {
+	return ThreadLabelMapper{
+		ThreadID: threadID,
+		LabelID:  labelID,
 	}
 }
 
@@ -96,12 +129,31 @@ func initDb() *gorp.DbMap {
 	// construct a gorp DbMap
 	dbmap := &gorp.DbMap{Db: db, Dialect: gorp.SqliteDialect{}}
 
-	// add a table, setting the table name to 'posts' and
-	// specifying that the Id property is an auto incrementing PK
-	dbmap.AddTableWithName(Post{}, "posts").SetKeys(true, "Id")
+	// Enable foreign key support
+	_, err = dbmap.Exec("pragma foreign_keys = ON")
+	checkErr(err, "Failed to enable foreign key support")
 
-	// create the table. in a production system you'd generally
-	// use a migration tool, or create the tables via scripts
+	// add table for thread
+	dbmap.AddTableWithName(Thread{}, "thread").SetKeys(true, "Id")
+
+	// add table for label
+	dbmap.AddTableWithName(Label{}, "label").SetKeys(true, "Id")
+
+	// add many-to-many relationship table
+	sql := `create table thread_label_mapper (
+	thread_id integer, label_id integer,
+	foreign key(thread_id) references thread(id) on delete cascade,
+	foreign key(label_id) references label(id) on delete cascade
+	);
+	create index thread_index on thread_label_mapper(thread_id);
+	create index label_index on thread_label_mapper(label_id);
+	`
+
+	_, err = dbmap.Exec(sql)
+	checkErr(err, "Unable to create thread_label_mapper table")
+	dbmap.AddTableWithName(ThreadLabelMapper{}, "thread_label_mapper")
+
+	// create the thread and label tables
 	err = dbmap.CreateTablesIfNotExists()
 	checkErr(err, "Create tables failed")
 
