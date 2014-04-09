@@ -131,10 +131,12 @@ func initDb() *gorp.DbMap {
 	checkErr(err, "Failed to enable foreign key support")
 
 	// add table for thread
-	dbmap.AddTableWithName(Thread{}, "thread").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Thread{}, "thread").SetKeys(true, "Id").
+		ColMap("Thread").SetUnique(true)
 
 	// add table for label
-	dbmap.AddTableWithName(Label{}, "label").SetKeys(true, "Id")
+	dbmap.AddTableWithName(Label{}, "label").SetKeys(true, "Id").
+		ColMap("Label").SetUnique(true)
 
 	// add many-to-many relationship table
 	sql := `create table if not exists thread_label_mapper (
