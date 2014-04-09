@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"sort"
 	"strconv"
+	"os/user"
 )
 
 type Message struct {
@@ -161,8 +162,10 @@ func initClient () *imap.Client {
 	}
 
 	// Authenticate
+	usr, _ := user.Current()
+	credentialsFile := fmt.Sprintf("%s/%s", usr.HomeDir, ".ibex/credentials")
 	if c.State() == imap.Login {
-		b, err := ioutil.ReadFile("gmail.credentials")
+		b, err := ioutil.ReadFile(credentialsFile)
 		if (err != nil) {
 			fmt.Println(err.Error())
 			return nil
