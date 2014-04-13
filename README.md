@@ -44,7 +44,7 @@ $ cd $GOPATH/src/github.com/artagnon/ibex
 $ bower install
 ```
 
-Create a `gmail.credentails` with your email and password separated by
+Create a `~/.ibex/credentails` with your email and password separated by
 a newline. Then run `ibex`, navigate to `http://localhost:8080` and
 *wait* for the messages to load. Don't try a second operation before
 the original one completes.
