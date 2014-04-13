@@ -12,8 +12,13 @@ This is pre-alpha software, so expect lots of bugs.
 
 ## Why another email client?
 
-Because existing open source clients don't even have feature parity
-with the Gmail web interface. ibex implements [Gmail IMAP
+Existing open source clients don't even have feature parity with the
+Gmail web interface (threading and search). Moreover, they require
+that all emails be downloaded in advance: this is a non-starter.
+Specifically, Mailr requires all emails to be downloaded first, IMAP
+support is an afterthought in Mailpile.
+
+ibex implements [Gmail IMAP
 extensions](https://developers.google.com/gmail/imap_extensions):
 
 1. Using X-GM-MSGID and X-GM-THRID, it groups individual emails into
@@ -28,10 +33,11 @@ extensions](https://developers.google.com/gmail/imap_extensions):
    Gmail's syntax. This can be really slow because IMAP SEARCH does
    not provide a way to LIMIT results.
 
-The plan is to build a storage backend so that emails received over
-IMAP are stored. Existing clients like [sup](http://supmua.org) work
-with maildir/mbox, but those formats have no way to represent
-conversations and labels.
+The plan is to build a storage backend so mails are retrieved and
+stored as necessary.
+
+Existing clients like [sup](http://supmua.org) work with maildir/mbox,
+but those formats have no way to represent conversations and labels.
 
 ## Running
 
