@@ -233,8 +233,12 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 		fmt.Println(err.Error())
 		return nil
 	}
-	result := cmd.Data[0].SearchResults()[0]
-	set.AddNum(result)
+	results := cmd.Data[0].SearchResults()
+	if len(results) != 1 {
+		fmt.Println("Error: Could not get message for", messageID)
+		return nil
+	}
+	set.AddNum(results[0])
 	cmd.Data = nil
 
 	var body []byte
