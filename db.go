@@ -17,8 +17,8 @@ func dbMain() {
 	checkErr(err, "TruncateTables failed")
 
 	// create two posts
-	p1 := newThread("938249")
-	p2 := newThread("324985")
+	p1 := newThread("938249", "foo")
+	p2 := newThread("324985", "bar")
 
 	// insert rows - auto increment PKs will be set properly after the insert
 	err = dbmap.Insert(&p1, &p2)
@@ -30,7 +30,7 @@ func dbMain() {
 	log.Println("Rows after inserting:", count)
 
 	// update a row
-	p2.Thread = "932849"
+	p2.ThreadID = "932849"
 	count, err = dbmap.Update(&p2)
 	checkErr(err, "Update failed")
 	log.Println("Rows updated:", count)
@@ -41,7 +41,7 @@ func dbMain() {
 	log.Println("p2 row:", p2)
 
 	// fetch all rows
-	var threads []Thread
+	var threads []ThreadDb
 	_, err = dbmap.Select(&threads, "select * from thread order by id")
 	checkErr(err, "Select failed")
 	log.Println("All rows:")
@@ -86,14 +86,12 @@ func dbMain() {
 	log.Println("Done!")
 }
 
-func insertThreadLabels(dbmap *gorp.DbMap, thread string, labels []string) {
-	var t Thread
-	var l Label
+func insertThreadLabels(dbmap *gorp.DbMap, thread ThreadDb, labels []string) {
+	var l LabelDb
 	var m ThreadLabelMapper
-	err := dbmap.SelectOne(&t, "select * from thread where thread=?", thread)
+	err := dbmap.SelectOne(&thread, "select * from thread where thread_id=?", thread.ThreadID)
 	if err != nil {
-		t = newThread(thread)
-		err = dbmap.Insert(&t)
+		err = dbmap.Insert(&thread)
 		checkErr(err, "Insert failed")
 	}
 
@@ -107,21 +105,22 @@ func insertThreadLabels(dbmap *gorp.DbMap, thread string, labels []string) {
 
 		err = dbmap.SelectOne(&m,
 			"select * from thread_label_mapper where thread_id=? and label_id=?",
-			t.Id, l.Id)
+			thread.Id, l.Id)
 		if err != nil {
-			m = newThreadLabelMapper(t.Id, l.Id)
+			m = newThreadLabelMapper(thread.Id, l.Id)
 			err = dbmap.Insert(&m)
 			checkErr(err, "Insert failed")
 		}
 	}
 }
 
-type Thread struct {
+type ThreadDb struct {
 	Id       int64
-	Thread   string
+	ThreadID string `db:"thread_id"`
+	Subject  string
 }
 
-type Label struct {
+type LabelDb struct {
 	Id      int64
 	Label   string
 }
@@ -131,14 +130,15 @@ type ThreadLabelMapper struct {
 	LabelID  int64 `db:"label_id"`
 }
 
-func newThread(thread string) Thread {
-	return Thread{
-		Thread: thread,
+func newThread(threadId string, subject string) ThreadDb {
+	return ThreadDb{
+		ThreadID: threadId,
+		Subject: subject,
 	}
 }
 
-func newLabel(label string) Label {
-	return Label{
+func newLabel(label string) LabelDb {
+	return LabelDb{
 		Label: label,
 	}
 }
@@ -164,11 +164,11 @@ func initDb() *gorp.DbMap {
 	checkErr(err, "Failed to enable foreign key support")
 
 	// add table for thread
-	dbmap.AddTableWithName(Thread{}, "thread").SetKeys(true, "Id").
-		ColMap("Thread").SetUnique(true)
+	dbmap.AddTableWithName(ThreadDb{}, "thread").SetKeys(true, "Id").
+		ColMap("ThreadId").SetUnique(true)
 
 	// add table for label
-	dbmap.AddTableWithName(Label{}, "label").SetKeys(true, "Id").
+	dbmap.AddTableWithName(LabelDb{}, "label").SetKeys(true, "Id").
 		ColMap("Label").SetUnique(true)
 
 	// add many-to-many relationship table
