@@ -5,6 +5,7 @@ import (
 	"github.com/coopernurse/gorp"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
+	"time"
 )
 
 func dbMain() {
@@ -114,6 +115,15 @@ func insertThreadLabels(dbmap *gorp.DbMap, thread ThreadDb, labels []string) {
 	}
 }
 
+func insertMessage(dbmap *gorp.DbMap, message MessageDb) {
+	var m MessageDb
+	err := dbmap.SelectOne(&m, "select * from message where message_id=?", message.MessageID)
+	if err != nil {
+		err = dbmap.Insert(&message)
+		checkErr(err, "Insert failed")
+	}
+}
+
 type ThreadDb struct {
 	Id       int64
 	ThreadID string `db:"thread_id"`
@@ -123,6 +133,14 @@ type ThreadDb struct {
 type LabelDb struct {
 	Id      int64
 	Label   string
+}
+
+type MessageDb struct {
+	Id        int64
+	ThreadID  int64  `db:"thread_id"`
+	MessageID string `db:"message_id"`
+	Date      time.Time
+	From      string
 }
 
 type ThreadLabelMapper struct {
@@ -140,6 +158,18 @@ func newThread(threadId string, subject string) ThreadDb {
 func newLabel(label string) LabelDb {
 	return LabelDb{
 		Label: label,
+	}
+}
+
+func newMessage(threadID string, messageID string, date time.Time, from string) MessageDb {
+	var t ThreadDb
+	err := dbmap.SelectOne(&t, "select * from thread where thread_id=?", threadID)
+	checkErr(err, "Can't find thread corresponding to message")
+	return MessageDb{
+		ThreadID: t.Id,
+		MessageID: messageID,
+		Date: date,
+		From: from,
 	}
 }
 
@@ -165,11 +195,15 @@ func initDb() *gorp.DbMap {
 
 	// add table for thread
 	dbmap.AddTableWithName(ThreadDb{}, "thread").SetKeys(true, "Id").
-		ColMap("ThreadId").SetUnique(true)
+		ColMap("ThreadID").SetUnique(true)
 
 	// add table for label
 	dbmap.AddTableWithName(LabelDb{}, "label").SetKeys(true, "Id").
 		ColMap("Label").SetUnique(true)
+
+	// add table for label
+	dbmap.AddTableWithName(MessageDb{}, "message").SetKeys(true, "Id").
+		ColMap("MessageID").SetUnique(true)
 
 	// add many-to-many relationship table
 	sql := `create table if not exists thread_label_mapper (

@@ -83,8 +83,13 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 		}
 		messageStruct := Message{msg.Header.Get("Subject"), date,
 			fromList[0], flags, labels, threadID, messageID}
+
+		// Insert into db
 		thread := newThread(threadID, msg.Header.Get("Subject"))
 		insertThreadLabels(dbmap, thread, labels)
+		message := newMessage(threadID, messageID, date, fromList[0].String())
+		insertMessage(dbmap, message)
+
 		list = append(list, &messageStruct)
 	}
 	cmd.Data = nil
