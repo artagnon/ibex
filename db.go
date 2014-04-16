@@ -53,9 +53,12 @@ func dbMain() {
 	l1 := newLabel("git")
 	l2 := newLabel("linux")
 	err = dbmap.Insert(&l1, &l2)
+	checkErr(err, "Insert failed")
+
 	m1 := newThreadLabelMapper(p1.Id, l1.Id)
 	m2 := newThreadLabelMapper(p1.Id, l2.Id)
 	err = dbmap.Insert(&m1, &m2)
+	checkErr(err, "Insert failed")
 
 	// fetch all relationships
 	var mappings []ThreadLabelMapper
