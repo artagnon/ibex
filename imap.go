@@ -13,7 +13,10 @@ import (
 	"sort"
 	"strconv"
 	"os/user"
+	"github.com/coopernurse/gorp"
 )
+
+var dbmap *gorp.DbMap
 
 type Message struct {
 	Subject string
@@ -80,6 +83,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 		}
 		messageStruct := Message{msg.Header.Get("Subject"), date,
 			fromList[0], flags, labels, threadID, messageID}
+		insertThreadLabels(dbmap, threadID, labels)
 		list = append(list, &messageStruct)
 	}
 	cmd.Data = nil
@@ -173,6 +177,9 @@ func initClient () *imap.Client {
 		userPass := strings.Split(string(b), "\n")
 		c.Login(userPass[0], userPass[1])
 	}
+
+	// Initiate a db connection
+	dbmap = initDb()
 
 	return c
 }

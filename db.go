@@ -86,6 +86,36 @@ func dbMain() {
 	log.Println("Done!")
 }
 
+func insertThreadLabels(dbmap *gorp.DbMap, thread string, labels []string) {
+	var t Thread
+	var l Label
+	var m ThreadLabelMapper
+	err := dbmap.SelectOne(&t, "select * from thread where thread=?", thread)
+	if err != nil {
+		t = newThread(thread)
+		err = dbmap.Insert(&t)
+		checkErr(err, "Insert failed")
+	}
+
+	for _, label := range labels {
+		err = dbmap.SelectOne(&l, "select * from label where label=?", label)
+		if err != nil {
+			l = newLabel(label)
+			err = dbmap.Insert(&l)
+			checkErr(err, "Insert failed")
+		}
+
+		err = dbmap.SelectOne(&m,
+			"select * from thread_label_mapper where thread_id=? and label_id=?",
+			t.Id, l.Id)
+		if err != nil {
+			m = newThreadLabelMapper(t.Id, l.Id)
+			err = dbmap.Insert(&m)
+			checkErr(err, "Insert failed")
+		}
+	}
+}
+
 type Thread struct {
 	Id       int64
 	Thread   string
