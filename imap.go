@@ -112,8 +112,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 		return nil
 	}
 
-	list := listMessages(c, cmd)
-	return list
+	return listMessages(c, cmd)
 }
 
 func listConversations (c *imap.Client, cmd *imap.Command) []byte {
