@@ -132,11 +132,19 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 	}
 	cmd.Data = nil
 
+	/* Load threads from db, or retrieve over IMAP */
 	c.Select("[Gmail]/All Mail", true)
 	for threadid, _ := range threads {
-		conversations[threadid] = threadSearch(c, threadid)
+		thread, err := retrieveThread(dbmap, threadid)
+		if err == nil {
+			conversations[threadid] = retrieveMessages(dbmap, thread)
+		} else {
+			conversations[threadid] = threadSearch(c, threadid)
+		}
 	}
 
+	/* Convert a hashtable keyed by threadID to a hashtable keyed
+	/* by latest conversation date */
 	for key, value := range conversations {
 		if (value == nil) {
 			fmt.Println("Error: conversation with key", key, "wasn't fetched")

@@ -6,6 +6,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"time"
+	"net/mail"
 )
 
 func dbMain() {
@@ -122,6 +123,32 @@ func insertMessage(dbmap *gorp.DbMap, message MessageDb) {
 		err = dbmap.Insert(&message)
 		checkErr(err, "Insert failed")
 	}
+}
+
+func retrieveThread(dbMap *gorp.DbMap, threadID string) (ThreadDb, error) {
+	var thread ThreadDb
+	err := dbmap.SelectOne(&thread, "select * from thread where thread_id=?", threadID)
+	return thread, err
+}
+
+func retrieveMessages(dbMap *gorp.DbMap, thread ThreadDb) []*Message {
+	var messagedbs []MessageDb
+	var messageList []*Message
+	_, err := dbmap.Select(&messagedbs, "select * from message where thread_id=?", thread.Id)
+	checkErr(err, "Failed to find message in thread")
+	for _, messagedb := range messagedbs {
+		addr, err := mail.ParseAddress(messagedb.From)
+		checkErr(err, "Could not parse address")
+		message := Message{
+			Subject: thread.Subject,
+			Date: messagedb.Date,
+			From: addr,
+			ThreadID: thread.ThreadID,
+			MessageID: messagedb.MessageID,
+		}
+		messageList = append(messageList, &message)
+	}
+	return messageList
 }
 
 type ThreadDb struct {
