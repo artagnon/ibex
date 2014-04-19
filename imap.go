@@ -138,7 +138,7 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 		if err == nil {
 			conversations[threadid] = retrieveMessages(dbmap, thread)
 		} else {
-			c.Select("[Gmail]/All Mail", true)
+			selectMailbox(c, "[Gmail]/All Mail", true)
 			fmt.Println("Fetching thread from IMAP")
 			conversations[threadid] = threadSearch(c, threadid)
 		}
@@ -245,8 +245,14 @@ func listRecent (c *imap.Client, limit uint32) []byte {
 	return bytestring
 }
 
+func selectMailbox(c *imap.Client, name string, readonly bool) {
+	if (c.Mailbox == nil || c.Mailbox.Name != name) {
+		c.Select(name, readonly)
+	}
+}
+
 func fetchMessage (c *imap.Client, messageID string) []byte {
-	c.Select("[Gmail]/All Mail", true)
+	selectMailbox(c, "[Gmail]/All Mail", true)
 	set, _ := imap.NewSeqSet("")
 	qS := c.Quote(messageID)
 	cmd, err := imap.Wait(c.UIDSearch("X-GM-MSGID", qS))

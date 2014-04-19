@@ -19,14 +19,14 @@ func requestLogger(handler http.Handler) http.Handler {
 }
 
 func inboxHandler(w http.ResponseWriter, r *http.Request) {
-	c.Select("INBOX", true)
+	selectMailbox(c, "INBOX", true)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	fmt.Fprint(w, string(listRecent(c, 20)))
 }
 
 func allMailHandler(w http.ResponseWriter, r *http.Request) {
-	c.Select("[Gmail]/All Mail", true)
+	selectMailbox(c, "[Gmail]/All Mail", true)
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
 	fmt.Fprint(w, string(listRecent(c, 20)))
@@ -42,7 +42,7 @@ func messageHandler(w http.ResponseWriter, r *http.Request) {
 func httpMain() {
 	c = initClient()
 	if (c == nil) {	return }
-	c.Select("INBOX", true)
+	selectMailbox(c, "INBOX", true)
 	defer c.Logout(30 * time.Minute)
 
 	r := mux.NewRouter()
