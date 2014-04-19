@@ -25,9 +25,10 @@ end
 
 class BufferManager
   def initialize
-    @minibuf_stack = ["foom", "baz"]
+    @minibuf_stack = ["foom"]
     @textfields = {}
     @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
+    @next_color_id = 0
   end
 
   def draw_screen
@@ -37,6 +38,7 @@ class BufferManager
     print "\033]0;#{title}\07" if title && @in_x
 
     draw_minibuf
+    draw_status
     draw_inbox
     
 
@@ -54,10 +56,18 @@ class BufferManager
   end
 
   def draw_minibuf
-    m = @minibuf_stack.compact
-    m.each_with_index do |s, i|
-      Ncurses.mvaddstr Ncurses.rows - i - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
-    end
+    s = @minibuf_stack[0]
+    Ncurses.mvaddstr Ncurses.rows - 1, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+    Ncurses.refresh
+  end
+
+  def draw_status
+    id = (@next_color_id + 1)
+    s = "The glorious status"
+    Ncurses.init_pair id, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLUE
+    Ncurses.attrset (Ncurses.COLOR_PAIR id) | Ncurses::A_BOLD
+    Ncurses.mvaddstr Ncurses.rows - 2, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
+    Ncurses.attrset Ncurses::A_NORMAL
     Ncurses.refresh
   end
 end
