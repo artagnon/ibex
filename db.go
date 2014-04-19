@@ -133,9 +133,21 @@ func retrieveThread(dbMap *gorp.DbMap, threadID string) (ThreadDb, error) {
 
 func retrieveMessages(dbMap *gorp.DbMap, thread ThreadDb) []*Message {
 	var messagedbs []MessageDb
+	var mappings []ThreadLabelMapper
+	var label LabelDb
+	var labels []string
 	var messageList []*Message
 	_, err := dbmap.Select(&messagedbs, "select * from message where thread_id=?", thread.Id)
 	checkErr(err, "Failed to find message in thread")
+	_, err = dbmap.Select(&mappings,
+		"select * from thread_label_mapper where thread_id=?",
+		thread.Id)
+	/* err != nil indicates no labels for thread */
+	for _, mapping := range mappings {
+		err = dbmap.SelectOne(&label, "select * from label where id=?", mapping.LabelID)
+		checkErr(err, "Inconsistency in mapper table")
+		labels = append(labels, label.Label)
+	}
 	for _, messagedb := range messagedbs {
 		addr, err := mail.ParseAddress(messagedb.From)
 		checkErr(err, "Could not parse address")
@@ -143,6 +155,7 @@ func retrieveMessages(dbMap *gorp.DbMap, thread ThreadDb) []*Message {
 			Subject: thread.Subject,
 			Date: messagedb.Date,
 			From: addr,
+			Labels: labels,
 			ThreadID: thread.ThreadID,
 			MessageID: messagedb.MessageID,
 		}
