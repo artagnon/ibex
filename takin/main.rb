@@ -50,6 +50,12 @@ class BufferManager
       mails << Ncurses::Menu.new_item(String(index), h[key][0]["Subject"])
     end
     @menu = Ncurses::Menu.new_menu mails
+    @next_color_id = @next_color_id + 1
+    Ncurses.init_pair @next_color_id, Ncurses::COLOR_BLACK, Ncurses::COLOR_CYAN
+    Ncurses::Menu.set_menu_fore @menu, (Ncurses::COLOR_PAIR @next_color_id)
+    @next_color_id = @next_color_id + 1
+    Ncurses.init_pair @next_color_id, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
+    Ncurses::Menu.set_menu_back @menu, (Ncurses::COLOR_PAIR @next_color_id)
     Ncurses::Menu.post_menu @menu
     Ncurses.refresh
   end
@@ -61,10 +67,10 @@ class BufferManager
   end
 
   def draw_status
-    id = (@next_color_id + 1)
     s = "The glorious status"
-    Ncurses.init_pair id, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLUE
-    Ncurses.attrset (Ncurses.COLOR_PAIR id) | Ncurses::A_BOLD
+    @next_color_id = @next_color_id + 1
+    Ncurses.init_pair @next_color_id, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLUE
+    Ncurses.attrset (Ncurses.COLOR_PAIR @next_color_id) | Ncurses::A_BOLD
     Ncurses.mvaddstr Ncurses.rows - 2, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
     Ncurses.attrset Ncurses::A_NORMAL
     Ncurses.refresh
