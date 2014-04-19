@@ -29,18 +29,14 @@ class BufferManager
     @textfields = {}
     @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
     @next_color_id = 0
+    @menu = nil
   end
 
   def draw_screen
-    status, title = "status-bar", "title"
-
-    ## http://rtfm.etla.org/xterm/ctlseq.html (see Operating System Controls)
-    print "\033]0;#{title}\07" if title && @in_x
 
     draw_minibuf
     draw_status
     draw_inbox
-    
 
     Ncurses.doupdate
     Ncurses.refresh
@@ -48,10 +44,13 @@ class BufferManager
 
   def draw_inbox
     dump = Net::HTTP.get('localhost', '/Inbox.json', 8080)
+    mails = []
     h = JSON.parse(dump)
     h.keys.sort.each_with_index do |key, index|
-      Ncurses.mvaddstr index, 0, h[key][0]["Subject"]
+      mails << Ncurses::Menu.new_item(String(index), h[key][0]["Subject"])
     end
+    @menu = Ncurses::Menu.new_menu mails
+    Ncurses::Menu.post_menu @menu
     Ncurses.refresh
   end
 
@@ -69,6 +68,16 @@ class BufferManager
     Ncurses.mvaddstr Ncurses.rows - 2, 0, s + (" " * [Ncurses.cols - s.length, 0].max)
     Ncurses.attrset Ncurses::A_NORMAL
     Ncurses.refresh
+  end
+
+  def idle_loop
+    while true
+      case Ncurses.getch
+      when 'q'.ord then break
+      when Ncurses::KEY_DOWN then Ncurses::Menu::menu_driver @menu, Ncurses::Menu::REQ_DOWN_ITEM
+      when Ncurses::KEY_UP then Ncurses::Menu::menu_driver @menu, Ncurses::Menu::REQ_UP_ITEM
+      end
+    end
   end
 end
 
@@ -91,10 +100,5 @@ end
 start_cursing
 bm = BufferManager.new
 bm.draw_screen
-while true
-  char = Ncurses.getch
-  if char == 'q'.ord
-    stop_cursing
-    break
-  end
-end
+bm.idle_loop
+stop_cursing
