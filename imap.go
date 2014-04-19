@@ -133,12 +133,13 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 	cmd.Data = nil
 
 	/* Load threads from db, or retrieve over IMAP */
-	c.Select("[Gmail]/All Mail", true)
 	for threadid, _ := range threads {
 		thread, err := retrieveThread(dbmap, threadid)
 		if err == nil {
 			conversations[threadid] = retrieveMessages(dbmap, thread)
 		} else {
+			c.Select("[Gmail]/All Mail", true)
+			fmt.Println("Fetching thread from IMAP")
 			conversations[threadid] = threadSearch(c, threadid)
 		}
 	}
