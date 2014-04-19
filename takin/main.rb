@@ -93,7 +93,7 @@ bm = BufferManager.new
 bm.draw_screen
 while true
   char = Ncurses.getch
-  if char == 113 # for 'q'
+  if char == 'q'.ord
     stop_cursing
     break
   end
