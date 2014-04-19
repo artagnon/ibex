@@ -30,10 +30,10 @@ class BufferManager
     @in_x = ENV["TERM"] =~ /(xterm|rxvt|screen)/
     @next_color_id = 0
     @menu = nil
+    @inbox = nil
   end
 
   def draw_screen
-
     draw_minibuf
     draw_status
     draw_inbox
@@ -45,9 +45,9 @@ class BufferManager
   def draw_inbox
     dump = Net::HTTP.get('localhost', '/Inbox.json', 8080)
     mails = []
-    h = JSON.parse(dump)
-    h.keys.sort.each_with_index do |key, index|
-      mails << Ncurses::Menu.new_item(String(index), h[key][0]["Subject"])
+    @inbox = JSON.parse(dump)
+    @inbox.keys.sort.each_with_index do |key, index|
+      mails << Ncurses::Menu.new_item(String(index), @inbox[key][0]["Subject"])
     end
     @menu = Ncurses::Menu.new_menu mails
     @next_color_id = @next_color_id + 1
@@ -57,6 +57,15 @@ class BufferManager
     Ncurses.init_pair @next_color_id, Ncurses::COLOR_WHITE, Ncurses::COLOR_BLACK
     Ncurses::Menu.set_menu_back @menu, (Ncurses::COLOR_PAIR @next_color_id)
     Ncurses::Menu.post_menu @menu
+    Ncurses.refresh
+  end
+
+  def draw_thread idx
+    Ncurses.clear
+    key = @inbox.keys.sort[idx.to_i]
+    id = @inbox[key][0]["MessageID"]
+    dump = Net::HTTP.get('localhost', "/Messages/#{id}", 8080)
+    Ncurses.mvaddstr 0, 0, dump
     Ncurses.refresh
   end
 
@@ -82,6 +91,7 @@ class BufferManager
       when 'q'.ord then break
       when Ncurses::KEY_DOWN then Ncurses::Menu::menu_driver @menu, Ncurses::Menu::REQ_DOWN_ITEM
       when Ncurses::KEY_UP then Ncurses::Menu::menu_driver @menu, Ncurses::Menu::REQ_UP_ITEM
+      when 10 then draw_thread (Ncurses::Menu.item_name Ncurses::Menu.current_item @menu)
       end
     end
   end
