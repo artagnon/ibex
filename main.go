@@ -11,7 +11,5 @@ func main () {
 		httpMain()
 	case "imap":
 		imapMain()
-	case "db":
-		dbMain()
 	}
 }
