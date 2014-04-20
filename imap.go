@@ -193,7 +193,7 @@ func initClient () *imap.Client {
 	}
 
 	// Initiate a db connection
-	dbmap = initDb()
+	dbmap = initDb(false)
 
 	return c
 }

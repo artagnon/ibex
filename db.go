@@ -11,7 +11,7 @@ import (
 
 func dbMain() {
 	// initialize the DbMap
-	dbmap := initDb()
+	dbmap := initDb(true)
 	defer dbmap.Db.Close()
 
 	// delete any existing rows
@@ -220,10 +220,12 @@ func newThreadLabelMapper(threadID int64, labelID int64) ThreadLabelMapper {
 	}
 }
 
-func initDb() *gorp.DbMap {
-	// connect to db using standard Go database/sql API
-	// use whatever database/sql driver you wish
-	db, err := sql.Open("sqlite3", "mail.db")
+func initDb(testing bool) *gorp.DbMap {
+	dbName := "testing.db"
+	if !testing {
+		dbName = "mail.db"
+	}
+	db, err := sql.Open("sqlite3", dbName)
 	checkErr(err, "sql.Open failed")
 
 	// construct a gorp DbMap
