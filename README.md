@@ -55,8 +55,3 @@ a newline. Then run `ibex`, navigate to `http://localhost:8080` and
 *wait* for the messages to load. Don't try a second operation before
 the original one completes.
 
-When you get annoyed with the amount of time it takes to render,
-uncomment the `main` function in imap.go temporarily, `go build
-imap.go`, then dump the JSON into `www/Inbox.json` and
-`www/AllMail.json`. Comment out the corresponding endpoints in
-httpd.go.
