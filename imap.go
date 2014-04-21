@@ -97,10 +97,9 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 	return list
 }
 
-func threadSearch (c *imap.Client, threadID string) []*Message {
+func threadSearch (cmd *imap.Command) []*Message {
 	set, _ := imap.NewSeqSet("")
-	cmd, err := imap.Wait(c.Search("X-GM-THRID", c.Quote(threadID)))
-	if (err != nil) {
+	if _, err := cmd.Result(imap.OK); err != nil {
 		fmt.Println(err.Error())
 		return nil
 	}
@@ -111,7 +110,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 	}
 	cmd.Data = nil
 
-	cmd, err = imap.Wait(c.Fetch(set, "BODY.PEEK[HEADER]", "X-GM-THRID",
+	cmd, err := imap.Wait(c.Fetch(set, "BODY.PEEK[HEADER]", "X-GM-THRID",
 		"X-GM-MSGID", "FLAGS", "X-GM-LABELS"))
 	if (err != nil) {
 		fmt.Println(err.Error())
@@ -123,6 +122,7 @@ func threadSearch (c *imap.Client, threadID string) []*Message {
 
 func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 	threads := make(map[string]bool)
+	threadCmds := make(map[string]*imap.Command)
 	conversations := make(Conversations)
 	conversationsD := make(Conversations)
 
@@ -140,8 +140,11 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 		} else {
 			selectMailbox(c, "[Gmail]/All Mail", true)
 			fmt.Println("Fetching thread from IMAP")
-			conversations[threadid] = threadSearch(c, threadid)
+			threadCmds[threadid], _ = c.Search("X-GM-THRID", c.Quote(threadid))
 		}
+	}
+	for threadid, threadCmd := range threadCmds {
+		conversations[threadid] = threadSearch(threadCmd)
 	}
 
 	/* Convert a hashtable keyed by threadID to a hashtable keyed
