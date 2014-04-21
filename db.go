@@ -9,9 +9,11 @@ import (
 	"net/mail"
 )
 
-func insertThreadLabels(dbmap *gorp.DbMap, thread ThreadDb, labels []string) {
+func insertThread(dbmap *gorp.DbMap, thread ThreadDb, labels []string, flags []string) {
 	var l LabelDb
-	var m ThreadLabelMapper
+	var f FlagDb
+	var tlm ThreadLabelMapper
+	var tfm ThreadFlagMapper
 	err := dbmap.SelectOne(&thread, "select * from thread where thread_id=?", thread.ThreadID)
 	if err != nil {
 		err = dbmap.Insert(&thread)
@@ -26,12 +28,30 @@ func insertThreadLabels(dbmap *gorp.DbMap, thread ThreadDb, labels []string) {
 			checkErr(err, "Insert failed")
 		}
 
-		err = dbmap.SelectOne(&m,
+		err = dbmap.SelectOne(&tlm,
 			"select * from thread_label_mapper where thread_id=? and label_id=?",
 			thread.Id, l.Id)
 		if err != nil {
-			m = newThreadLabelMapper(thread.Id, l.Id)
-			err = dbmap.Insert(&m)
+			tlm = newThreadLabelMapper(thread.Id, l.Id)
+			err = dbmap.Insert(&tlm)
+			checkErr(err, "Insert failed")
+		}
+	}
+
+	for _, flag := range flags {
+		err = dbmap.SelectOne(&f, "select * from flag where flag=?", flag)
+		if err != nil {
+			f = newFlag(flag)
+			err = dbmap.Insert(&f)
+			checkErr(err, "Insert failed")
+		}
+
+		err = dbmap.SelectOne(&tfm,
+			"select * from thread_flag_mapper where thread_id=? and flag_id=?",
+			thread.Id, f.Id)
+		if err != nil {
+			tfm = newThreadFlagMapper(thread.Id, f.Id)
+			err = dbmap.Insert(&tfm)
 			checkErr(err, "Insert failed")
 		}
 	}
@@ -96,6 +116,11 @@ type LabelDb struct {
 	Label   string
 }
 
+type FlagDb struct {
+	Id      int64
+	Flag    string
+}
+
 type MessageDb struct {
 	Id        int64
 	ThreadID  int64  `db:"thread_id"`
@@ -109,6 +134,11 @@ type ThreadLabelMapper struct {
 	LabelID  int64 `db:"label_id"`
 }
 
+type ThreadFlagMapper struct {
+	ThreadID int64 `db:"thread_id"`
+	FlagID   int64 `db:"flag_id"`
+}
+
 func newThread(threadId string, subject string) ThreadDb {
 	return ThreadDb{
 		ThreadID: threadId,
@@ -119,6 +149,12 @@ func newThread(threadId string, subject string) ThreadDb {
 func newLabel(label string) LabelDb {
 	return LabelDb{
 		Label: label,
+	}
+}
+
+func newFlag(flag string) FlagDb {
+	return FlagDb{
+		Flag: flag,
 	}
 }
 
@@ -141,6 +177,13 @@ func newThreadLabelMapper(threadID int64, labelID int64) ThreadLabelMapper {
 	}
 }
 
+func newThreadFlagMapper(threadID int64, flagID int64) ThreadFlagMapper {
+	return ThreadFlagMapper{
+		ThreadID: threadID,
+		FlagID:   flagID,
+	}
+}
+
 func initDb(testing bool) *gorp.DbMap {
 	dbName := "testing.db"
 	if !testing {
@@ -156,19 +199,18 @@ func initDb(testing bool) *gorp.DbMap {
 	_, err = dbmap.Exec("pragma foreign_keys = ON")
 	checkErr(err, "Failed to enable foreign key support")
 
-	// add table for thread
 	dbmap.AddTableWithName(ThreadDb{}, "thread").SetKeys(true, "Id").
 		ColMap("ThreadID").SetUnique(true)
 
-	// add table for label
 	dbmap.AddTableWithName(LabelDb{}, "label").SetKeys(true, "Id").
 		ColMap("Label").SetUnique(true)
 
-	// add table for label
+	dbmap.AddTableWithName(FlagDb{}, "flag").SetKeys(true, "Id").
+		ColMap("Flag").SetUnique(true)
+
 	dbmap.AddTableWithName(MessageDb{}, "message").SetKeys(true, "Id").
 		ColMap("MessageID").SetUnique(true)
 
-	// add many-to-many relationship table
 	sql := `create table if not exists thread_label_mapper (
 	thread_id integer, label_id integer,
 	foreign key(thread_id) references thread(id) on delete cascade,
@@ -181,6 +223,19 @@ func initDb(testing bool) *gorp.DbMap {
 	_, err = dbmap.Exec(sql)
 	checkErr(err, "Unable to create thread_label_mapper table")
 	dbmap.AddTableWithName(ThreadLabelMapper{}, "thread_label_mapper")
+
+	sql = `create table if not exists thread_flag_mapper (
+	thread_id integer, flag_id integer,
+	foreign key(thread_id) references thread(id) on delete cascade,
+	foreign key(flag_id) references flag(id) on delete cascade
+	);
+	create index thread_index on thread_flag_mapper(thread_id);
+	create index flag_index on thread_flag_mapper(flag_id);
+	`
+
+	_, err = dbmap.Exec(sql)
+	checkErr(err, "Unable to create thread_flag_mapper table")
+	dbmap.AddTableWithName(ThreadFlagMapper{}, "thread_flag_mapper")
 
 	// create the thread and label tables
 	err = dbmap.CreateTablesIfNotExists()

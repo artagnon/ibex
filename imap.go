@@ -86,7 +86,7 @@ func listMessages (c *imap.Client, cmd *imap.Command) MessageArray {
 
 		// Insert into db
 		thread := newThread(threadID, msg.Header.Get("Subject"))
-		insertThreadLabels(dbmap, thread, labels)
+		insertThread(dbmap, thread, labels, flags)
 		message := newMessage(threadID, messageID, date, fromList[0].String())
 		insertMessage(dbmap, message)
 
