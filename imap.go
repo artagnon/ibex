@@ -121,19 +121,18 @@ func threadSearch (cmd *imap.Command) []*Message {
 }
 
 func listConversations (c *imap.Client, cmd *imap.Command) []byte {
-	threads := make(map[string]bool)
 	threadCmds := make(map[string]*imap.Command)
 	conversations := make(Conversations)
 	conversationsD := make(Conversations)
 
 	for _, rsp := range cmd.Data {
 		threadid := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
-		threads[threadid] = true
+		conversations[threadid] = nil
 	}
 	cmd.Data = nil
 
 	/* Load threads from db, or retrieve over IMAP */
-	for threadid, _ := range threads {
+	for threadid, _ := range conversations {
 		thread, err := retrieveThread(dbmap, threadid)
 		if err == nil {
 			conversations[threadid] = retrieveMessages(dbmap, thread)
