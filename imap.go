@@ -123,7 +123,6 @@ func threadSearch (cmd *imap.Command) []*Message {
 func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 	threadCmds := make(map[string]*imap.Command)
 	conversations := make(Conversations)
-	conversationsD := make(Conversations)
 
 	for _, rsp := range cmd.Data {
 		threadid := rsp.MessageInfo().Attrs["X-GM-THRID"].(string)
@@ -148,17 +147,21 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 
 	/* Convert a hashtable keyed by threadID to a hashtable keyed
 	/* by latest conversation date */
-	for key, value := range conversations {
+	var keys []string
+	for key, _ := range conversations { keys = append(keys, key); }
+	for _, key := range keys {
+		value := conversations[key]
 		if (value == nil) {
 			fmt.Println("Error: conversation with key", key, "wasn't fetched")
 			continue;
 		}
 		sort.Sort(MessageArray(value))
 		newKey := value[len(value) - 1].Date
-		conversationsD[strconv.FormatInt(newKey.Unix(), 10)] = value
+		delete(conversations, key)
+		conversations[strconv.FormatInt(newKey.Unix(), 10)] = value
 	}
 
-	bytestring, _ := json.Marshal(conversationsD)
+	bytestring, _ := json.Marshal(conversations)
 	return bytestring
 }
 
