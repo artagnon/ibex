@@ -74,21 +74,38 @@ func retrieveThread(dbMap *gorp.DbMap, threadID string) (ThreadDb, error) {
 
 func retrieveMessages(dbMap *gorp.DbMap, thread ThreadDb) []*Message {
 	var messagedbs []MessageDb
-	var mappings []ThreadLabelMapper
+	var tlms []ThreadLabelMapper
+	var tfms []ThreadFlagMapper
 	var label LabelDb
 	var labels []string
+	var flag FlagDb
+	var flags []string
 	var messageList []*Message
 	_, err := dbmap.Select(&messagedbs, "select * from message where thread_id=?", thread.Id)
 	checkErr(err, "Failed to find message in thread")
-	_, err = dbmap.Select(&mappings,
+
+	/* Labels */
+	_, err = dbmap.Select(&tlms,
 		"select * from thread_label_mapper where thread_id=?",
 		thread.Id)
 	/* err != nil indicates no labels for thread */
-	for _, mapping := range mappings {
+	for _, mapping := range tlms {
 		err = dbmap.SelectOne(&label, "select * from label where id=?", mapping.LabelID)
 		checkErr(err, "Inconsistency in mapper table")
 		labels = append(labels, label.Label)
 	}
+
+	/* Flags */
+	_, err = dbmap.Select(&tfms,
+		"select * from thread_flag_mapper where thread_id=?",
+		thread.Id)
+	/* err != nil indicates no flags for thread */
+	for _, mapping := range tfms {
+		err = dbmap.SelectOne(&flag, "select * from flag where id=?", mapping.FlagID)
+		checkErr(err, "Inconsistency in mapper table")
+		flags = append(flags, flag.Flag)
+	}
+
 	for _, messagedb := range messagedbs {
 		addr, err := mail.ParseAddress(messagedb.From)
 		checkErr(err, "Could not parse address")
@@ -96,6 +113,7 @@ func retrieveMessages(dbMap *gorp.DbMap, thread ThreadDb) []*Message {
 			Subject: thread.Subject,
 			Date: messagedb.Date,
 			From: addr,
+			Flags: flags,
 			Labels: labels,
 			ThreadID: thread.ThreadID,
 			MessageID: messagedb.MessageID,
