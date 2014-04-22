@@ -107,12 +107,15 @@ func retrieveMessages(dbMap *gorp.DbMap, thread ThreadDb) []*Message {
 	}
 
 	for _, messagedb := range messagedbs {
-		addr, err := mail.ParseAddress(messagedb.From)
+		addr := mail.Address{
+			Name: messagedb.FromName,
+			Address: messagedb.FromAddr,
+		}
 		checkErr(err, "Could not parse address")
 		message := Message{
 			Subject: thread.Subject,
 			Date: messagedb.Date,
-			From: addr,
+			From: &addr,
 			Flags: flags,
 			Labels: labels,
 			ThreadID: thread.ThreadID,
@@ -144,7 +147,8 @@ type MessageDb struct {
 	ThreadID  int64  `db:"thread_id"`
 	MessageID string `db:"message_id"`
 	Date      time.Time
-	From      string
+	FromName  string
+	FromAddr  string
 }
 
 type ThreadLabelMapper struct {
@@ -176,7 +180,7 @@ func newFlag(flag string) FlagDb {
 	}
 }
 
-func newMessage(threadID string, messageID string, date time.Time, from string) MessageDb {
+func newMessage(threadID string, messageID string, date time.Time, fromName string, fromAddr string) MessageDb {
 	var t ThreadDb
 	err := dbmap.SelectOne(&t, "select * from thread where thread_id=?", threadID)
 	checkErr(err, "Can't find thread corresponding to message")
@@ -184,7 +188,8 @@ func newMessage(threadID string, messageID string, date time.Time, from string) 
 		ThreadID: t.Id,
 		MessageID: messageID,
 		Date: date,
-		From: from,
+		FromName: fromName,
+		FromAddr: fromAddr,
 	}
 }
 
