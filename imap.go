@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"os/user"
 	"github.com/coopernurse/gorp"
+	"log"
 )
 
 var dbmap *gorp.DbMap
@@ -138,7 +139,11 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 		} else {
 			selectMailbox(c, "[Gmail]/All Mail", true)
 			fmt.Println("Fetching thread from IMAP")
-			threadCmds[threadid], _ = c.Search("X-GM-THRID", c.Quote(threadid))
+			threadCmds[threadid], err = c.Search("X-GM-THRID", c.Quote(threadid))
+			if err != nil {
+				log.Fatalln("Search failed", err)
+				delete(threadCmds, threadid)
+			}
 		}
 	}
 	for threadid, threadCmd := range threadCmds {
