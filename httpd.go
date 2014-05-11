@@ -49,14 +49,6 @@ func httpMain() {
 	r.HandleFunc("/Inbox.json", inboxHandler)
 	r.HandleFunc("/AllMail.json", allMailHandler)
 	r.HandleFunc("/Messages/{messageID}", messageHandler)
-	r.HandleFunc("/Inbox",
-		func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "www/index.html");
-		});
-	r.HandleFunc("/AllMail",
-		func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "www/index.html");
-		});
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("www")))
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", requestLogger(http.DefaultServeMux))
