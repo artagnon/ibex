@@ -4,11 +4,13 @@ import "os"
 
 func main () {
 	if (len(os.Args) < 2) {
-		httpMain()
+		httpMain(false)
 	}
 	switch os.Args[1] {
 	case "http":
-		httpMain()
+		httpMain(false)
+	case "debug":
+		httpMain(true)
 	case "imap":
 		imapMain()
 	}

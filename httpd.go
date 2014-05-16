@@ -39,8 +39,8 @@ func messageHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(fetchMessage(c, messageID)))
 }
 
-func httpMain() {
-	c = initClient()
+func httpMain(debug bool) {
+	c = initClient(debug)
 	if (c == nil) {	return }
 	selectMailbox(c, "INBOX", true)
 	defer c.Logout(30 * time.Minute)

@@ -18,6 +18,7 @@ import (
 )
 
 var dbmap *gorp.DbMap
+var useDbStore bool
 
 type Message struct {
 	Subject string
@@ -134,7 +135,7 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 	/* Load threads from db, or retrieve over IMAP */
 	for threadid, _ := range conversations {
 		thread, err := retrieveThread(dbmap, threadid)
-		if err == nil {
+		if useDbStore && err == nil {
 			conversations[threadid] = retrieveMessages(dbmap, thread)
 		} else {
 			selectMailbox(c, "[Gmail]/All Mail", true)
@@ -170,8 +171,14 @@ func listConversations (c *imap.Client, cmd *imap.Command) []byte {
 	return bytestring
 }
 
-func initClient () *imap.Client {
+func initClient (debug bool) *imap.Client {
 	var config *tls.Config
+
+	if (debug) {
+		useDbStore = false
+	} else {
+		useDbStore = true
+	}
 
 	// Connect to the server
 	c, err := imap.DialTLS("imap.gmail.com", config)
@@ -296,7 +303,7 @@ func fetchMessage (c *imap.Client, messageID string) []byte {
 }
 
 func imapMain () {
-	c := initClient()
+	c := initClient(false)
 	if (c == nil) { return }
 
 	// Remember to log out and close the connection when finished
